@@ -1,3 +1,5 @@
+const parseDuration = require('parse-duration');
+
 const { serial } = require('./util');
 
 const findTimestampIndex = (data, timestamp) => {
@@ -31,6 +33,7 @@ class QueryRequest {
 class QueryRange {
   constructor(interval, fetchHandler) {
     this.interval = interval;
+    this.intervalMs = parseDuration(interval);
     this.fetchHandler = fetchHandler;
     this.data = [];
   }
@@ -40,11 +43,11 @@ class QueryRange {
   }
 
   query(startTime, endTime, latest=false) {
-    startTime = Math.floor(Number(startTime) / this.interval) * this.interval;
-    endTime = (Math.floor(Number(endTime) / this.interval) * this.interval) //+ this.interval;
+    startTime = Math.floor(Number(startTime) / this.intervalMs) * this.intervalMs;
+    endTime = (Math.floor(Number(endTime) / this.intervalMs) * this.intervalMs) //+ this.intervalMs;
 
     if (latest) {
-      endTime += this.interval;
+      endTime += this.intervalMs;
 
       if (this.data.length != 0) {
         if (endTime >= Date.now()) {
@@ -120,14 +123,14 @@ class QueryRange {
 
     return serial(toProcess.map((queryRequest) => {
       let duplicates = [];
-      for (let i = queryRequest.startTime; i <= queryRequest.endTime; i+=this.interval) {
+      for (let i = queryRequest.startTime; i <= queryRequest.endTime; i+=this.intervalMs) {
         let index = this.data.findIndex(x => x.timestamp == i);
         if (index !== -1) {
           duplicates.push(i);
         }
       }
       console.assert(duplicates.length == 0, `Duplicates found: ${duplicates.join(', ')}`);
-      return () => this.fetchHandler(queryRequest.startTime, queryRequest.endTime).then((result) => {
+      return () => this.fetchHandler(queryRequest.startTime, queryRequest.endTime, this.interval).then((result) => {
         sections[queryRequest.index] = { found: false, values: result };
       });
     }));
@@ -145,14 +148,14 @@ class QueryRange {
       }];
 
       if (i == sections.length - 1) {
-        for (let j = sections[i].values[sections[i].values.length - 1] + this.interval; j <= endTime; j += this.interval) {
+        for (let j = sections[i].values[sections[i].values.length - 1] + this.intervalMs; j <= endTime; j += this.intervalMs) {
           if (subsections[subsections.length - 1].values.length >= MAX_LEN) {
             subsections.push({ found: false, values: [] });
           }
           subsections[subsections.length - 1].values.push(j);
         }
       } else {
-        for (let j = sections[i].values[sections[i].values.length - 1] + this.interval; j < sections[i + 1].values[0]; j += this.interval) {
+        for (let j = sections[i].values[sections[i].values.length - 1] + this.intervalMs; j < sections[i + 1].values[0]; j += this.intervalMs) {
           if (subsections[subsections.length - 1].values.length >= MAX_LEN) {
             subsections.push({ found: false, values: [] });
           }
@@ -186,10 +189,10 @@ class QueryRange {
     let sections = [];
     let dataCopy = this.data.slice();
 
-    for (let i = startTime; i <= endTime; i += this.interval) {
+    for (let i = startTime; i <= endTime; i += this.intervalMs) {
       //let index = this.data.findIndex(i); // @TODO: use binary search. the data will be sorted.
       let index = findTimestampIndex(dataCopy, i);
-      let prevIndex = findTimestampIndex(dataCopy, i - this.interval);
+      let prevIndex = findTimestampIndex(dataCopy, i - this.intervalMs);
 
       if (i == startTime || sections[sections.length - 1].values.length >= 500 || Math.sign(index + 1) != Math.sign(prevIndex + 1)) {
         sections.push({

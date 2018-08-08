@@ -1,31 +1,30 @@
-const parseDuration = require('parse-duration');
-
 const QueryRange = require('./query-range');
 const { serial } = require('./util');
 
 const DURATIONS = ['5m', '15m', '30m', '1h', '3h', '4h', '6h', '12h', '1d', '3d', '1w'];
 
 class Monitor {
-  constructor(startDate, callbacks, interval=3500) {
+  constructor(startDate, callbacks, interval='5m') {
     if (typeof callbacks.onFetch !== 'function') {
       throw Error('callbacks.onFetch must be a function that returns a Promise');
     }
 
     this.startDate = startDate;
     this.callbacks = callbacks;
-    this.mainQueryRange = new QueryRange(30000, callbacks.onFetch);
+    this.mainQueryRange = new QueryRange('5m', callbacks.onFetch);
     this.interval = interval;
     this.ranges = {};
+    this._lastResults = null;
 
     for (let duration of DURATIONS) {
-      let durationMs = parseDuration(duration);
-
-      if (durationMs == this.mainQueryRange.interval) {
-        //this.ranges[duration] = this.mainQueryRange;
+      if (duration == this.mainQueryRange.interval) {
+        this.ranges[duration] = this.mainQueryRange;
         continue;
       }
 
-      this.ranges[duration] = new QueryRange(durationMs, this._aggregateData.bind(this, durationMs));
+      this.ranges[duration] = new QueryRange(duration, (start, end) => {
+        return this._aggregateData(this.ranges[duration].intervalMs, start, end);
+      });
     }
   }
 
@@ -45,11 +44,12 @@ class Monitor {
       endDate = endDate.valueOf();
 
       this.mainQueryRange.query(startDate, endDate, true).then((data) => {
-        let results = { '5m': data };
+        let results = {};
         let aggRanges = [];
 
         for (let key in this.ranges) {
           if (this.ranges[key] == this.mainQueryRange) {
+            results[this.ranges[key].interval] = data;
             continue;
           }
   
@@ -58,10 +58,16 @@ class Monitor {
 
         // Promise.all causing a strange anomaly where values are written to mainQueryRange's data property in multiple places??
         serial(aggRanges.map(k => () => this.ranges[k].query(startDate, endDate).then(d => results[k] = d))).then(() => {
-          // can do analyse this data when received -- perform S&R check, trendlines, etc.
-          if (typeof this.callbacks.onResults === 'function') {
-            this.callbacks.onResults(results);
+          let resultsJson = JSON.stringify(results);
+          
+          if (resultsJson != this._lastResults) {
+            // can do analyse this data when received -- perform S&R check, trendlines, etc.
+            if (typeof this.callbacks.onResults === 'function') {
+              this.callbacks.onResults(results);
+            }
           }
+
+          this._lastResults = resultsJson;
 
           clearTimeout(this._timeout);
           this._loop();
@@ -71,6 +77,7 @@ class Monitor {
   }
 
   _aggregateData(durationMs, start, end) {
+    console.log('durationMs = ', durationMs);
     return this.mainQueryRange.query(start, end).then((results) => {
       // aggregate the results from the main QueryRange. results will be stored in this.ranges[duration] for later use, as well.
       let summedData = [];
@@ -94,8 +101,8 @@ class Monitor {
         }
       });
 
-      let itemsDiv = Math.ceil(results.length / (durationMs / this.mainQueryRange.interval));
-      console.assert(summedData.length == itemsDiv, `for duration: ${durationMs} expected ${summedData.length} items but got ${itemsDiv} (original: ${results.length})`);
+      let itemsDiv = Math.ceil(results.length / (durationMs / this.mainQueryRange.intervalMs));
+      console.assert(summedData.length == itemsDiv, `for duration: ${durationMs} expected ${itemsDiv} items but got ${summedData.length}  (original: ${results.length})`);
 
       return summedData;
     });
@@ -103,7 +110,10 @@ class Monitor {
   }
 
   start() {
-    this._loop();
+    return new Promise((resolve, reject) => {
+      this._loop();
+      resolve();
+    });
   }
 }
 
