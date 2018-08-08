@@ -61,7 +61,7 @@ class Monitor {
         // Promise.all causing a strange anomaly where values are written to mainQueryRange's data property in multiple places??
         serial(aggRanges.map(k => () => this.ranges[k].query(startDate, endDate).then(d => results[k] = { values: d }))).then(() => {
           for (let key in results) {
-            results[key] = this.pipeline.filter({ values: this.ranges[key].data });
+            results[key] = this.pipeline.run({ values: this.ranges[key].data });
           }
 
           let resultsJson = JSON.stringify(results);

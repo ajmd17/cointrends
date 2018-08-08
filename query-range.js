@@ -56,7 +56,6 @@ class QueryRange {
       }
     }
 
-
     let sections = this._filterSubsections(this._populateSections(startTime, endTime), startTime, endTime);
     let toProcess = sections.map(({ found, values }, index) => {
       if (found) {

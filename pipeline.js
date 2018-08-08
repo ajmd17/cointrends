@@ -22,7 +22,7 @@ class Pipeline {
     this.steps.push({ key, step });
   }
 
-  filter(data) {
+  run(data) {
     data['_filters'] = data['_filters'] || {};
 
     for (let i = 0; i < this.steps.length; i++) {
