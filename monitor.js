@@ -1,10 +1,11 @@
 const QueryRange = require('./query-range');
+const Pipeline = require('./pipeline');
 const { serial } = require('./util');
 
 const DURATIONS = ['5m', '15m', '30m', '1h', '3h', '4h', '6h', '12h', '1d', '3d', '1w'];
 
 class Monitor {
-  constructor(startDate, callbacks, interval='5m') {
+  constructor(startDate, callbacks, pipeline=null, interval=10000) {
     if (typeof callbacks.onFetch !== 'function') {
       throw Error('callbacks.onFetch must be a function that returns a Promise');
     }
@@ -12,7 +13,8 @@ class Monitor {
     this.startDate = startDate;
     this.callbacks = callbacks;
     this.mainQueryRange = new QueryRange('5m', callbacks.onFetch);
-    this.interval = interval;
+    this._interval = interval;
+    this.pipeline = pipeline || new Pipeline();
     this.ranges = {};
     this._lastResults = null;
 
@@ -49,7 +51,7 @@ class Monitor {
 
         for (let key in this.ranges) {
           if (this.ranges[key] == this.mainQueryRange) {
-            results[this.ranges[key].interval] = data;
+            results[this.ranges[key].interval] = { values: data };
             continue;
           }
   
@@ -57,9 +59,13 @@ class Monitor {
         }
 
         // Promise.all causing a strange anomaly where values are written to mainQueryRange's data property in multiple places??
-        serial(aggRanges.map(k => () => this.ranges[k].query(startDate, endDate).then(d => results[k] = d))).then(() => {
+        serial(aggRanges.map(k => () => this.ranges[k].query(startDate, endDate).then(d => results[k] = { values: d }))).then(() => {
+          for (let key in results) {
+            results[key] = this.pipeline.filter({ values: this.ranges[key].data });
+          }
+
           let resultsJson = JSON.stringify(results);
-          
+
           if (resultsJson != this._lastResults) {
             // can do analyse this data when received -- perform S&R check, trendlines, etc.
             if (typeof this.callbacks.onResults === 'function') {
@@ -73,7 +79,7 @@ class Monitor {
           this._loop();
         });
       });
-    }, this.interval);
+    }, this._interval);
   }
 
   _aggregateData(durationMs, start, end) {

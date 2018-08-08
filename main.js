@@ -4,6 +4,8 @@ const path = require('path');
 const crypto = require('crypto');
 
 const Monitor = require('./monitor');
+const Pipeline = require('./pipeline');
+const { Fractals, SupportResistance } = require('./steps');
 
 const startDate = new Date();
 startDate.setDate(startDate.getDate() - 1);
@@ -45,7 +47,7 @@ class ExchangeMonitor extends Monitor {
       onFetch: (start, end) => {
         console.assert(exchanges[this.exchange] != null, `exchange ${this.exchange} not found`);
         const { url, transform } = exchanges[this.exchange];
-        let urlString = url({ symbol: this.symbol, interval: this.interval, start, end });
+        let urlString = url({ symbol: this.symbol, interval: this.mainQueryRange.interval, start, end });
     
         let duration = ((new Date(end).valueOf() - new Date(start).valueOf()) / 60000).toFixed(2);
         console.log('Fetch remote - ' + duration + 'm range');
@@ -103,20 +105,23 @@ class ExchangeMonitor extends Monitor {
             }
           });*/
 
-          let allResults = {};
+          // let allResults = {};
 
-          for (let key in this.ranges) {
-            allResults[key] = this.ranges[key].data;
-          }
+          // for (let key in this.ranges) {
+          //   allResults[key] = this.ranges[key].data;
+          // }
 
-          fs.writeFile(filepath, JSON.stringify(allResults, null, '\t'), (err) => {
+          fs.writeFile(filepath, JSON.stringify(results, null, '\t'), (err) => {
             if (err) {
               console.error(`Failed to write file ${filepath}`, err);
             }
           });
         }
       }
-    });
+    }, new Pipeline({
+      'fractals': new Fractals(),
+      'support-resistance': new SupportResistance()
+    }));
 
     this.exchange = exchange;
     this.symbol = symbol;
