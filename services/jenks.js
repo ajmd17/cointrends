@@ -6,7 +6,6 @@ function jenks(data, n_classes) {
   });
 
   var matrices = getMatrices(data, n_classes);
-  console.log('matrices = ', matrices);
   var lower_class_limits = matrices.lower_class_limits;
 
   // extract n_classes out of the computed matrices

@@ -1,12 +1,24 @@
+const _ = require('lodash');
+
 const Step = require('./step');
 
 class Pipeline {
-  constructor(steps={}) {
+  constructor(steps=[]) {
     this.steps = [];
     this.dataStore = {};
 
-    for (let key in steps) {
-      this.add(key, steps[key]);
+    for (let step of steps) {
+      if (step instanceof Step) {
+        let key = _.snakeCase(step.constructor.name);
+        this.add(key, step);
+      } else {
+        console.assert(typeof step === 'function' && step.prototype != null, 'step should be a constructor')
+      
+        let key = _.snakeCase(step.name);
+        let stepObj = new step;
+        console.assert(stepObj instanceof Step, 'constructor must inherit from Step');
+        this.add(key, stepObj);
+      }
     }
   }
 
@@ -14,8 +26,12 @@ class Pipeline {
     console.assert(step instanceof Step, 'must be an instance of Step');
 
     step._opts.requires.forEach((requireKey) => {
+      if (typeof requireKey === 'function') {
+        requireKey = _.snakeCase(requireKey.name);
+      }
+
       if (this.steps.findIndex(x => x.key == requireKey) === -1) {
-        throw Error(`${key} step requires the '${requireKey}'`);
+        throw Error(`${key} step requires the '${requireKey}' step`);
       }
     });
 
@@ -49,7 +65,11 @@ class Pipeline {
     return data;
   }
 
-  getDataStore(key) {
+  getDataStore(key=undefined) {
+    if (typeof key === 'undefined') {
+      return this.dataStore;
+    }
+
     return this.dataStore[key];
   }
 }

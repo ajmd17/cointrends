@@ -11,7 +11,7 @@ function percentDiff(a, b) {
 }
 
 class SupportResistance extends Step {
-  constructor(threshold, detail=20) {
+  constructor(threshold=0.01, detail=20) {
     super({
       requires: ['fractals']
     });
@@ -27,33 +27,40 @@ class SupportResistance extends Step {
     let clusters = [];
 
     Object.keys(fractals).forEach((key) => {
-      let f = fractals[key].map((idx) => data[idx]);
-      let pt = key == 'up' ? f.low : f.high;
+      let f = fractals[key].map(({ index }) => data[index]);
       
       f.forEach((fractal, i) => {
         let inRange = [];
+        let pt = key == 'up' ? fractal.low : fractal.high;
 
         Object.keys(fractals).forEach((key2) => {
           for (let j = 0; j < fractals[key2].length; j++) {
-            let pt2 = key2 == 'up' ? fractals[key2][j].low : fractals[key2][j].high;
+            let fractal2 = data[fractals[key2][j].index];
+            let pt2 = key2 == 'up' ? fractal2.low : fractal2.high;
 
             if (key2 == key && j == i) {
               continue;
             }
   
             if (percentDiff(pt, pt2) <= this.threshold) {
-              inRange.push([fractals[key2].timestamp, pt2]);
+              inRange.push([fractal2.timestamp, pt2]);
             }
           }
         });
 
         if (inRange.length != 0) {
-          clusters.push({ avg: (pt + inRange.reduce((accum, el) => accum + el[1], 0)) / (inRange.length + 1), points: [[fractal.timestamp, pt]].concat(inRange) });
+          let avg = (inRange.reduce((accum, el) => accum + el[1], pt)) / (inRange.length + 1);
+          let foundIndex = clusters.findIndex((c) => c.avg == avg);
+
+          if (foundIndex == -1) {
+            clusters.push({ avg, points: [[fractal.timestamp, pt]].concat(inRange) });
+          }
         }
       });
     });
 
-    const groups = jenks(clusters.map((el) => el.avg), this.detail);
+    let clusterAvgs = clusters.map(x => x.avg);
+    let groups = jenks(clusterAvgs, Math.min(clusterAvgs.length, this.detail)).filter(x => x != null);
 
     return groups;
   }

@@ -1,3 +1,7 @@
+const request = require('request');
+const path = require('path');
+const fs = require('fs');
+
 const Monitor = require('./monitor');
 const Pipeline = require('./pipeline');
 const { Fractals, SupportResistance } = require('./steps');
@@ -81,10 +85,7 @@ class ExchangeMonitor extends Monitor {
           });
         }
       }
-    }, new Pipeline({
-      'fractals': new Fractals(),
-      'support-resistance': new SupportResistance()
-    }));
+    }, [Fractals, SupportResistance]);
 
     this.exchange = exchange;
     this.symbol = symbol;

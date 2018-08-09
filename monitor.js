@@ -5,7 +5,7 @@ const { serial } = require('./util');
 const DURATIONS = ['5m', '15m', '30m', '1h', '3h', '4h', '6h', '12h', '1d', '3d', '1w'];
 
 class Monitor {
-  constructor(startDate, callbacks, pipeline=null, interval=10000) {
+  constructor(startDate, callbacks, pipelineSteps=[], interval=10000) {
     if (typeof callbacks.onFetch !== 'function') {
       throw Error('callbacks.onFetch must be a function that returns a Promise');
     }
@@ -14,19 +14,18 @@ class Monitor {
     this.callbacks = callbacks;
     this.mainQueryRange = new QueryRange('5m', callbacks.onFetch);
     this._interval = interval;
-    this.pipeline = pipeline || new Pipeline();
     this.ranges = {};
     this._lastResults = null;
 
     for (let duration of DURATIONS) {
-      if (duration == this.mainQueryRange.interval) {
-        this.ranges[duration] = this.mainQueryRange;
-        continue;
-      }
-
-      this.ranges[duration] = new QueryRange(duration, (start, end) => {
-        return this._aggregateData(this.ranges[duration].intervalMs, start, end);
-      });
+      this.ranges[duration] = {
+        queryRange: duration != this.mainQueryRange.interval
+          ? new QueryRange(duration, (start, end) => {
+            return this._aggregateData(this.ranges[duration].queryRange.intervalMs, start, end);
+          })
+          : this.mainQueryRange,
+        pipeline: new Pipeline(pipelineSteps)
+      };
     }
   }
 
@@ -51,7 +50,7 @@ class Monitor {
 
         for (let key in this.ranges) {
           if (this.ranges[key] == this.mainQueryRange) {
-            results[this.ranges[key].interval] = { values: data };
+            results[this.ranges[key].queryRange.interval] = { values: data };
             continue;
           }
   
@@ -59,9 +58,9 @@ class Monitor {
         }
 
         // Promise.all causing a strange anomaly where values are written to mainQueryRange's data property in multiple places??
-        serial(aggRanges.map(k => () => this.ranges[k].query(startDate, endDate).then(d => results[k] = { values: d }))).then(() => {
+        serial(aggRanges.map(k => () => this.ranges[k].queryRange.query(startDate, endDate).then(d => results[k] = { values: d }))).then(() => {
           for (let key in results) {
-            results[key] = this.pipeline.run({ values: this.ranges[key].data });
+            results[key] = this.ranges[key].pipeline.run({ values: this.ranges[key].queryRange.data });
           }
 
           let resultsJson = JSON.stringify(results);
@@ -83,7 +82,6 @@ class Monitor {
   }
 
   _aggregateData(durationMs, start, end) {
-    console.log('durationMs = ', durationMs);
     return this.mainQueryRange.query(start, end).then((results) => {
       // aggregate the results from the main QueryRange. results will be stored in this.ranges[duration] for later use, as well.
       let summedData = [];

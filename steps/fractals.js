@@ -23,10 +23,12 @@ class Fractals extends Step {
       let down = (data[i - 2].high < data[i].high) && (data[i - 1].high < data[i].high) && (data[i + 1].high < data[i].high) && (data[i + 2].high < data[i].high);
       let up = (data[i - 2].low > data[i].low) && (data[i - 1].low > data[i].low) && (data[i + 1].low > data[i].low) && (data[i + 2].low > data[i].low);
   
+      let obj = { index: i, timestamp: data[i].timestamp };
+
       if (down) {
-        results.down.push(i);
+        results.down.push(obj);
       } else if (up) {
-        results.up.push(i);
+        results.up.push(obj);
       }
     }
 
