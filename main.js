@@ -14,9 +14,9 @@ if (!fs.existsSync(dataStorePath)) {
   fs.mkdirSync(dataStorePath);
 }
 
-const Server = require('./server');
+const Api = require('./api');
 
-Server.start().then(() => {
+Api.startServer().then(() => {
   for (let key in exchanges) {
     let exchange = exchanges[key];
   

@@ -1,57 +1,31 @@
 const express = require('express');
-const httpStatus = require('http-status-codes');
+const bodyParser = require('body-parser');
+const http = require('http');
+const path = require('path');
+const mongoose = require('mongoose');
+mongoose.Promise = global.Promise;
 
-const exchanges = require('../exchanges');
+const router = require('./router');
 
-function api() {
-  const router = express.Router();
+const Api = {
+  PORT: require('../config.json')['API_PORT'],
 
-  router.get('/:exchange/symbols', (req, res) => {
+  _server: null,
 
-  });
+  startServer() {
+    const app = express();
+    this._server = http.createServer(app);
 
-  router.get('/:exchange/:pair', (req, res) => {
-    const {
-      interval,
-      start,
-      end
-    } = req.query;
+    app.use(bodyParser.json())
+      .use('/api', router());
 
-    const exchange = exchanges[req.params.exchange]
+    mongoose.connect('mongodb://localhost/cointrends');
+    this._server.listen(this.PORT);
 
-    if (exchange == null) {
-      return res.status(httpStatus.BAD_REQUEST).json({
-        error: `unknown exchange '${req.params.exchange}'`
-      });
-    }
+    console.log('Listening on port ' + this.PORT + '...');
 
-    const monitor = exchange.monitors[req.params.pair];
+    return Promise.resolve();
+  }
+};
 
-    if (monitor == null) {
-      return res.status(httpStatus.BAD_REQUEST).json({
-        error: `no monitor for pair '${req.params.pair}'`
-      });
-    }
-
-    const range = monitor.ranges[interval];
-
-    if (range == null) {
-      return res.status(httpStatus.BAD_REQUEST).json({
-        error: `unrecognized interval '${interval}'`
-      });
-    }
-
-    range.queryRange.query(Number(start), Number(end)).then((results) => {
-      res.json({ results, filters: range.pipeline.dataStore });
-    }).catch((err) => {
-      console.error('Query error: ', err);
-      res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
-        error: 'query error'
-      });
-    });
-  });
-
-  return router;
-}
-
-module.exports = api;
+module.exports = Api;
