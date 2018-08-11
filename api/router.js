@@ -7,9 +7,15 @@ function api() {
   const router = express.Router();
 
   router.get('/:exchange/symbols', (req, res) => {
-    res.status(httpStatus.NOT_IMPLEMENTED).json({
-      error: 'not implemented'
-    });
+    const exchange = exchanges[req.params.exchange];
+
+    if (exchange == null) {
+      return res.status(httpStatus.BAD_REQUEST).json({
+        error: `unknown exchange '${req.params.exchange}'`
+      });
+    }
+
+    res.json(exchange.symbols);
   });
 
   router.get('/:exchange/:pair', (req, res) => {
@@ -19,7 +25,7 @@ function api() {
       end
     } = req.query;
 
-    const exchange = exchanges[req.params.exchange]
+    const exchange = exchanges[req.params.exchange];
 
     if (exchange == null) {
       return res.status(httpStatus.BAD_REQUEST).json({

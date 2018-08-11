@@ -2,7 +2,7 @@ const QueryRange = require('./query-range');
 const Pipeline = require('./pipeline');
 const { serial } = require('./util');
 
-const DURATIONS = ['5m', '15m', '30m', '1h', '3h', '4h', '6h', '12h', '1d', '3d', '1w'];
+const durations = require('./durations');
 
 class Monitor {
   constructor(startDate, callbacks, pipelineSteps=[], interval=10000) {
@@ -17,7 +17,7 @@ class Monitor {
     this.ranges = {};
     this._lastResults = null;
 
-    for (let duration of DURATIONS) {
+    for (let duration of durations) {
       this.ranges[duration] = {
         queryRange: duration != this.mainQueryRange.interval
           ? new QueryRange(duration, (start, end) => {

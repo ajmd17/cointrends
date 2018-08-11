@@ -16,6 +16,9 @@ module.exports = {
   plugins: [
     new webpack.ProvidePlugin({
       'Promise': 'es6-promise'
+    }),
+    new webpack.DefinePlugin({
+      'DURATIONS': JSON.stringify(require('../durations'))
     })
   ],
   module: {

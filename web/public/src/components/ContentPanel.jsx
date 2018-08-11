@@ -6,7 +6,7 @@ import {
   StraightLine
 } from "react-stockcharts/lib/series";
 
-// import Chart from '../components/Chart';
+import Chart from './Chart';
 import Accordion from './Accordion';
 
 class ContentPanel extends React.Component {
@@ -33,20 +33,17 @@ class ContentPanel extends React.Component {
   }
 
   componentDidMount() {
-   // this.handlePropsUpdate(this.props);
+   this.handlePropsUpdate(this.props);
    
-   axios.get('/api/binance/symbols').then(({ data }) => {
-     console.log('data = ', data);
-   })
   }
 
   componentWillReceiveProps(newProps) {
-    // if (this.dataFetchTimeout != null) {
-    //   clearTimeout(this.dataFetchTimeout);
-    //   this.dataFetchTimeout = null;
-    // }
+    if (this.dataFetchTimeout != null) {
+      clearTimeout(this.dataFetchTimeout);
+      this.dataFetchTimeout = null;
+    }
 
-   // this.handlePropsUpdate(newProps);
+    this.handlePropsUpdate(newProps);
   }
 
   handlePropsUpdate = (props) => {
@@ -57,7 +54,7 @@ class ContentPanel extends React.Component {
       this.loadData(props);
     }
 
-    if (props.selectedExchange) {
+    if (props.selectedExchange  && ((props.selectedExchange != this.props.selectedExchange) || (this.props.symbolList == null || this.props.symbolList.length == 0))) {
       this.loadSymbols(props.selectedExchange);
     }
   };
@@ -91,107 +88,106 @@ class ContentPanel extends React.Component {
 
       // rather than just pushing into data, we should find a way to detect which items need to be overwritten
       
-      if (this.state.stream != null) {
-        return axios.get('/api/stream/' + encodeURIComponent(this.state.stream.key)).then(({ data }) => {
-          if (data.stream && data.stream.ready) {
-            console.log('Stream ' + data.stream.key + ' ready');
-            this.setState({ stream: null });
-          }
-        }).catch((err) => {
-          console.error('Error checking stream status: ', err);
-        });
-      }
+      // if (this.state.stream != null) {
+      //   return axios.get('/api/stream/' + encodeURIComponent(this.state.stream.key)).then(({ data }) => {
+      //     if (data.stream && data.stream.ready) {
+      //       console.log('Stream ' + data.stream.key + ' ready');
+      //       this.setState({ stream: null });
+      //     }
+      //   }).catch((err) => {
+      //     console.error('Error checking stream status: ', err);
+      //   });
+      // }
 
-      return axios.get('/api/exchangeData?exchange=' + this.props.selectedExchange + '&symbol=' + props.selectedSymbol + '&interval=' + props.timespan + '&startTime=' + startDate.valueOf() + '&endTime=' + endDate.valueOf())
+      return axios.get('/api/' + this.props.selectedExchange + '/' + props.selectedSymbol + '?interval=' + props.timespan + '&start=' + startDate.valueOf() + '&end=' + endDate.valueOf())
         .then(({ data }) => {
           if (data.stream) {
             console.log('Still loading');
             this.setState({ stream: data.stream });
             return;
           }
+          
+          if (data.results) {
+            let results = data.results.filter((el) => el != null && el.date != null);
 
+            if (results.length == 0) {
+              return;
+            }
 
-          data = data.filter((el) => el != null && el.date != null);
+            // fix dates
+            results = results.map((el) => {
+              return {
+                ...el,
+                date: new Date(el.date)
+              };
+            });
 
-          if (data.length == 0) {
-            return;
-          }
+            let currentData = this.state.data || [];
 
-          // fix dates
-          data = data.map((el) => {
-            return {
-              ...el,
-              date: new Date(el.date)
-            };
-          });
+            // find last item where the date fits into our new data's first item date range
+            const firstDateRange = results[0].date;
 
-          let currentData = this.state.data || [];
+            // where to slice the current data to concat new data
+            let chopIndex = -1;
 
-          // find last item where the date fits into our new data's first item date range
-          const firstDateRange = data[0].date;
-
-          // where to slice the current data to concat new data
-          let chopIndex = -1;
-
-          if (currentData.length != 0) {
-            const interval = currentData.length > 1 // calculate existing interval
-              ? currentData[1].date - currentData[0].date
-              : null;
-
-            for (let i = currentData.length - 1; i >= 0; i--) {
-              let start = currentData[i].date;
-              let end = i != currentData.length - 1
-                ? currentData[i + 1].date
+            if (currentData.length != 0) {
+              const interval = currentData.length > 1 // calculate existing interval
+                ? currentData[1].date - currentData[0].date
                 : null;
 
-              if (firstDateRange.valueOf() <= start.valueOf() || (interval != null && end != null && (firstDateRange.valueOf() + interval < end.valueOf()))) {
-                chopIndex = i;
-              } else {
-                break;
+              for (let i = currentData.length - 1; i >= 0; i--) {
+                let start = currentData[i].date;
+                let end = i != currentData.length - 1
+                  ? currentData[i + 1].date
+                  : null;
+
+                if (firstDateRange.valueOf() <= start.valueOf() || (interval != null && end != null && (firstDateRange.valueOf() + interval < end.valueOf()))) {
+                  chopIndex = i;
+                } else {
+                  break;
+                }
               }
             }
+
+            let lastPrice = currentData.length != 0
+              ? currentData[currentData.length - 1].close
+              : null;
+
+            let { tickerColor } = this.state;
+
+            if (lastPrice != null && lastPrice != results[results.length - 1].close) {
+              tickerColor = lastPrice < results[results.length - 1].close
+                ? '#00C288'
+                : '#FC1B51';
+            }
+
+            // this.props.onAlert(`${this.props.selectedSymbol}:${this.props.selectedExchange} @ ${this.formatPrice(lastPrice)}`);
+
+            const prevLength = currentData.length;
+
+            if (chopIndex != -1) {
+              currentData = currentData.slice(0, chopIndex);
+            }
+
+            currentData = currentData.concat(results);
+
+            const newLength = currentData.length;
+            const lengthDiff = newLength - prevLength;
+
+            if (currentData.length != 0) {
+              this.props.onPriceChange(this.formatPrice(currentData[currentData.length - 1].close));
+            }
+
+            if (this.state.data != null) {
+              console.log('before: ', this.state.data[this.state.data.length - 1]);
+              console.log('after: ', currentData[currentData.length - 1]);
+            }
+            this.setState({
+              tickerColor,
+              data: currentData,
+              filters: data.filters
+            });
           }
-
-          let lastPrice = currentData.length != 0
-            ? currentData[currentData.length - 1].close
-            : null;
-
-          let { tickerColor } = this.state;
-
-          if (lastPrice != null && lastPrice != data[data.length - 1].close) {
-            tickerColor = lastPrice < data[data.length - 1].close
-              ? '#00C288'
-              : '#FC1B51';
-          }
-
-          // this.props.onAlert(`${this.props.selectedSymbol}:${this.props.selectedExchange} @ ${this.formatPrice(lastPrice)}`);
-
-          const prevLength = currentData.length;
-
-          if (chopIndex != -1) {
-            currentData = currentData.slice(0, chopIndex);
-          }
-
-          console.log('data = ', data);
-          console.log('chopIndex = ', chopIndex);
-
-          currentData = currentData.concat(data);
-
-          const newLength = currentData.length;
-          const lengthDiff = newLength - prevLength;
-
-          if (currentData.length != 0) {
-            this.props.onPriceChange(this.formatPrice(currentData[currentData.length - 1].close));
-          }
-
-          if (this.state.data != null) {
-            console.log('before: ', this.state.data[this.state.data.length - 1]);
-            console.log('after: ', currentData[currentData.length - 1]);
-          }
-          this.setState({
-            tickerColor,
-            data: currentData
-          });
         }).catch((err) => console.error('API error: ', err));
     };
 
@@ -226,7 +222,7 @@ class ContentPanel extends React.Component {
   };
 
   loadSymbols = (selectedExchange) => {
-    axios.get('/api/symbols?exchange=' + selectedExchange).then(({ data }) => {
+    axios.get('/api/' + selectedExchange + '/symbols').then(({ data }) => {
       this.setState({ symbolList: data });
     }).catch((err) => console.error('Could not load symbols', err));
   };
@@ -239,6 +235,133 @@ class ContentPanel extends React.Component {
     ? `$${Number(price).toFixed(2)}`
     : Number(price).toFixed(8);
 
+  
+  renderTimespanSelection() {
+    let durationsGrouped = [];
+
+    DURATIONS.forEach((duration) => {
+      let index = durationsGrouped.findIndex((ary) => ary.length != 0 && ary[0][ary[0].length - 1] == duration[duration.length - 1]);
+      if (index == -1) {
+        durationsGrouped.push([]);
+        index = durationsGrouped.length - 1;
+      }
+
+      durationsGrouped[index].push(duration);
+    });
+
+    return (
+      <div className='timespan-selection'>
+        {durationsGrouped.map((timespanGroup, i) => {
+          return (
+            <span className='timespan-group' key={i}>
+              {timespanGroup.map((timespan, j) => {
+                return (
+                  <span className={`timespan${timespan == this.props.timespan ? ' selected' : ''}`} key={j} onClick={() => {
+                    this.clearData().then(() => {
+                      this.props.onUpdate({ timespan });
+                    });
+                  }}>
+                    {timespan}
+                  </span>
+                );
+              })}
+            </span>
+          );
+        })}
+      </div>
+    );
+  }
+
+  renderControls() {
+    return (
+      <div className='controls'>
+        <div className='main-dropdowns'>
+          <div className='block'>
+            <span>Exchange: </span>
+            <select
+              value={this.props.selectedExchange}
+              onChange={(event) => {
+                this.clearData();
+                this.props.onUpdate({
+                  selectedSymbol: null,
+                  selectedExchange: event.target.value
+                }).then(() => {
+                  this.loadSymbols(event.target.value);
+                });
+              }}
+            >
+              <option>Select an exchange</option>
+              <option value='binance'>Binance</option>
+            </select>
+          </div>
+          <div className='block'>
+            <span>Symbol: </span>
+            <select
+              value={this.props.selectedSymbol}
+              onChange={(event) => {
+                const selectedSymbol = event.target.value
+                this.clearData().then(() => {
+                  this.props.onUpdate({ selectedSymbol }).then((newProps) => {
+                    this.loadData(newProps);
+                  });
+                });
+              }}
+              disabled={this.props.selectedExchange == null || this.state.symbolList.length == 0}
+            >
+              <option>Select a symbol</option>
+              {this.state.symbolList != null
+                ? this.state.symbolList.map((symbol, i) => {
+                    return (
+                      <option value={symbol} key={i}>
+                        {symbol}
+                      </option>
+                    );
+                  })
+                : null}
+            </select>
+          </div>
+
+          <div className='time-options'>
+            <div className='date-selection'>
+              <span className='field'>
+                <label>From:</label>
+                {/* <input type='text'/> */}
+                <div className='block'>
+                  {/* <DatePicker selected={moment(this.props.dateRange[0])} onChange={(value) => { this.props.onUpdate({ dateRange: [value.valueOf(), this.props.dateRange[1]] }); }} /> */}
+                </div>
+              </span>
+              <span className='field'>
+                <label>To:</label>
+                
+                <div className='block'>
+                  {/* <DatePicker selected={moment(this.props.dateRange[1] || Date.now())} onChange={(value) => { this.props.onUpdate({ dateRange: [this.props.dateRange[0], value.valueOf()] }); }} /> */}
+                  <span className='cb'>
+                    <input type='checkbox' checked={this.props.dateRange[1] == null} onChange={(event) => { this.props.onUpdate({ dateRange: [this.props.dateRange[0], event.target.value ? null : Date.now()] }); }} />
+                    <label>Now</label>
+                  </span>
+                </div>
+              </span>
+            </div>
+            {this.renderTimespanSelection()}
+          </div>
+          
+        </div>
+
+        <Accordion title='Advanced' isOpened={this.props.showingAdvancedOptions} onClick={(showingAdvancedOptions) => this.props.onUpdate({ showingAdvancedOptions })}>
+          <div>
+            <span>Update interval: </span>
+            <input type='number' value={this.state.intervalValue} onChange={(event) => this.setState({ intervalValue: Math.min(Math.max(500, event.target.value), 15000) })} />
+          </div>
+          <div>
+            <span>Point cluster percentage threshold: </span>
+            <input type='number' value={this.props.pointClusterPercentageThreshold} onChange={(event) => this.props.onUpdate({ pointClusterPercentageThreshold: event.target.value })} />
+          </div>
+        </Accordion>
+
+      </div>
+    );
+  }
+
   render() {
     return (
       <div className='content-panel'>
@@ -246,6 +369,36 @@ class ContentPanel extends React.Component {
           <i className='fa fa-close close-panel' title='Close' onClick={this.props.onDelete}></i>
         </div>
         
+        {this.renderControls()}
+
+        <Accordion title='Chart' isOpened={this.props.showingChart} onClick={(showingChart) => this.props.onUpdate({ showingChart })}>
+          {this.state.data == null
+            ? null
+            : <Chart type='hybrid' data={this.state.data}>
+
+              </Chart>}
+          <div className='chart-options'>
+            <div className='field'>
+              <label>S&amp;R detail:</label>
+              <input type='number'
+                value={this.state.supportAndResistanceDetail != null ? this.state.supportAndResistanceDetail : this.props.supportAndResistanceDetail}
+                onChange={(event) => { this.setState({ supportAndResistanceDetail: event.target.value }); }}
+                onKeyDown={(event) => {
+                  if (event.keyCode == 13 && this.state.supportAndResistanceDetail != this.props.supportAndResistanceDetail) {
+                    this.props.onUpdate({ supportAndResistanceDetail: this.state.supportAndResistanceDetail });
+                  }
+                }}
+              />
+            </div>
+            <button
+              className={`btn small flat${this.state.supportAndResistanceDetail == null || this.state.supportAndResistanceDetail == this.props.supportAndResistanceDetail ? ' disabled' : ''}`}
+              disabled={this.state.supportAndResistanceDetail == null || this.state.supportAndResistanceDetail == this.props.supportAndResistanceDetail}
+              onClick={() => { this.props.onUpdate({ supportAndResistanceDetail: this.state.supportAndResistanceDetail }); }}
+            >
+              Recalculate
+            </button>
+          </div>
+        </Accordion>
       </div>
     );
   }
