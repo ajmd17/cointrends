@@ -16,7 +16,9 @@ class Pipeline {
       
         let key = _.snakeCase(step.name);
         let stepObj = new step;
+
         console.assert(stepObj instanceof Step, 'constructor must inherit from Step');
+
         this.add(key, stepObj);
       }
     }

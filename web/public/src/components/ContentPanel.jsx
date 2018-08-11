@@ -6,13 +6,8 @@ import {
   StraightLine
 } from "react-stockcharts/lib/series";
 
-import Chart from '../components/Chart';
-import SupportAndResistance from '../components/SupportAndResistance';
-import WilliamsFractals from '../components/WilliamsFractals';
-import Accordion from '../../components/Accordion';
-
-import SMA from '../services/sma';
-import williamsFractals from '../services/williamsFractals';
+// import Chart from '../components/Chart';
+import Accordion from './Accordion';
 
 class ContentPanel extends React.Component {
   static propTypes = {
@@ -26,25 +21,23 @@ class ContentPanel extends React.Component {
     super(props);
     this.state = {
       data: null,
-      fractals: null,
       symbolList: [],
       selectedSymbol: null,
       selectedExchange: null,
       intervalValue: 3500,
 
-      movingAverages: [],
       tickerColor: '#000',
-
-      supportsAndResistances: [],
 
       stream: null
     };
-
-    this._movingAverages = [9, 12, 20, 50, 100, 150, 200].map(x => new SMA(x));
   }
 
   componentDidMount() {
    // this.handlePropsUpdate(this.props);
+   
+   axios.get('/api/binance/symbols').then(({ data }) => {
+     console.log('data = ', data);
+   })
   }
 
   componentWillReceiveProps(newProps) {
@@ -187,10 +180,6 @@ class ContentPanel extends React.Component {
           const newLength = currentData.length;
           const lengthDiff = newLength - prevLength;
 
-          for (let i = 0; i < lengthDiff; i++) {
-            this._movingAverages.forEach(ma => ma.update(data[i].close));
-          }
-
           if (currentData.length != 0) {
             this.props.onPriceChange(this.formatPrice(currentData[currentData.length - 1].close));
           }
@@ -201,15 +190,7 @@ class ContentPanel extends React.Component {
           }
           this.setState({
             tickerColor,
-            data: currentData,
-            fractals: williamsFractals(currentData),
-            movingAverages: this._movingAverages.map((ma) => {
-              return {
-                // @TODO timeframes for MAs
-                period: ma.period,
-                value: ma.result
-              };
-            })
+            data: currentData
           });
         }).catch((err) => console.error('API error: ', err));
     };
@@ -231,13 +212,8 @@ class ContentPanel extends React.Component {
 
       let newState = {
         data: null,
-        fractals: null,
-        movingAverages: [],
-        supportsAndResistances: [],
         tickerColor: '#000'
       };
-
-      this._movingAverages.forEach((ma) => ma.reset());
 
       if (updateState) {
         this.setState(newState, () => {

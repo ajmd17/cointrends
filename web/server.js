@@ -1,5 +1,5 @@
 // this program is separate from the other parts and is for the web component only.
-
+const request = require('request');
 const express = require('express');
 const bodyParser = require('body-parser');
 const ejs = require('ejs');
@@ -11,6 +11,8 @@ const server = http.createServer(app);
 
 const assetsFolder = './assets/';
 const publicFolder = './dist';
+
+const config = require('../config.json');
 
 global['DEPLOY_VERSION'] = Date.now();
 
@@ -31,6 +33,20 @@ app.use(bodyParser.json())
       urlName: `${req.protocol}://${req.get('host')}`
     });
   });
+
+app.use('/api', (req, res) => {
+  request[req.method.toLowerCase()](`http://${config['API_URL']}:${config['API_PORT']}${req.originalUrl}`, Object.assign({}, req.params, req.body), (err, resp) => {
+    if (err) {
+      console.error('Error: ', err);
+      res.status(resp.statusCode).json({
+        error: resp.statusMessage
+      });
+    } else {
+      res.status(resp.statusCode).send(resp.body);
+    }
+  });
+
+});
 
 // start the server
 (function (port) {

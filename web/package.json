@@ -34,6 +34,7 @@
     "react-grid-layout": "^0.16.6",
     "react-router": "^3.0.2",
     "react-stockcharts": "^0.7.7",
+    "request": "^2.88.0",
     "webpack": "^4.16.5",
     "webpack-shell-plugin": "^0.5.0"
   },

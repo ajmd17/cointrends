@@ -7,7 +7,9 @@ function api() {
   const router = express.Router();
 
   router.get('/:exchange/symbols', (req, res) => {
-
+    res.status(httpStatus.NOT_IMPLEMENTED).json({
+      error: 'not implemented'
+    });
   });
 
   router.get('/:exchange/:pair', (req, res) => {
