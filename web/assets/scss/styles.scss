@@ -1,0 +1,353 @@
+@import './_main-content.scss';
+
+$desktop-width: 1024px;
+$tablet-width: 768px;
+$phone-width: 480px;
+$small-phone-width: 320px;
+
+@import 'react-datepicker.scss';
+
+.react-datepicker-popper {
+  z-index: 500;
+}
+
+@mixin default-width {
+  @media (min-width: #{$desktop-width}) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @media (max-width: #{$desktop-width}) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @media (max-width: #{$tablet-width}) {
+    @content;
+  }
+}
+
+@mixin phone {
+  @media (max-width: #{$phone-width}) {
+    @content;
+  }
+}
+
+@mixin small-phone {
+  @media (max-width: #{$small-phone-width}) {
+    @content;
+  }
+}
+
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  font-family: 'Source Sans Pro', sans-serif;
+}
+
+@mixin btn() {
+  position: relative;
+  display: inline-block;
+  outline: none;
+  margin: 0;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  font-family: inherit;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+  color: #485a69 !important;
+  background-color: #f2f2f2;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.2s linear, transform 0.3s ease, box-shadow 0.3s linear;
+
+  &:disabled, &.disabled {
+    filter: grayscale(80%);
+    opacity: 0.8;
+    cursor: not-allowed;
+  }
+}
+
+.btn {
+  @include btn;
+  &.primary {
+    background-color: #197CFE;
+    color: #fff !important;
+  }
+  &:hover:not([disabled]) {
+    //transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    text-decoration: none;
+  }
+  &.large {
+    font-size: 26px;
+    padding: 12px 40px;
+    width: 360px;
+  }
+  &.small {
+    padding: 3px 10px;
+    font-size: 15px;
+  }
+}
+
+.app-container {
+  > .card-view {
+    position: relative;
+    width: 65%;
+    max-width: 700px;
+    border-radius: 30px;
+    background-color: #fff;
+    margin: 25px auto;
+    padding: 20px 30px;
+    text-align: center;
+    box-shadow: 0 0 12px -1px rgba(0,0,0,0.3);
+
+    h3 {
+      margin: 0;
+      margin-bottom: 10px;
+      font-size: 28px;
+      color: #485a69;
+    }
+
+    hr {
+      border: none;
+      border-bottom: 3px solid #eee;
+    }
+  }
+}
+
+a {
+  text-decoration: none;
+  color: #3086f9;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+select {
+  outline: none;
+  font-family: inherit;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  padding: 3px 5px;
+  box-shadow: 0 0 1px rgba(50,50,50,0.1);
+}
+
+.field {
+  // margin-bottom: 10px;
+  display: inline-block;
+
+  span, label {
+    //display: inline-block;
+    font-size: 14px;
+    margin-right: 10px;
+    // width: 180px;
+    text-align: left;
+    // float: left;
+  }
+  input[type=text], input[type=password] {
+    // width: 100%;
+    box-sizing: border-box;
+    font-size: 14px;
+    outline: none;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-family: inherit;
+    padding: 3px 5px;
+    transition: border-color 0.2s ease;
+    box-shadow: 0 0 1px rgba(50, 50, 50, 0.1);
+
+    &:focus {
+      border-color: #ccc;
+    }
+  }
+}
+
+.subtext {
+  font-size: 12px;
+  color: #888;
+}
+
+.button-group {
+  margin-top: 15px;
+
+  .btn {
+    margin: 0 4px;
+  }
+}
+
+.error-msg {
+  color: red;
+  line-height: 50px;
+  vertical-align: middle;
+}
+
+.success-msg {
+  color: #0ab498;
+  line-height: 50px;
+
+  span {
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 18px;
+  }
+
+  .success-img {
+    width: 40px;
+    height: 40px;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+}
+
+.vignette {
+  box-shadow: 0 0 200px rgba(0,0,0,0.25) inset;
+}
+
+.alert-bar {
+  position: fixed;
+  width: 100%;
+  // background-color: #fff;
+  background-color: #000;
+  z-index: 1000;
+  transition: height 0.2s ease;
+  overflow: hidden;
+  box-shadow: 0 2px 8px -1px rgba(0,0,0,0.5);
+  border-bottom: 5px solid #3086f9;
+  color: #fff;
+
+  h2 {
+    display: inline-block;
+    margin: 0;
+    line-height: 30px;
+    vertical-align: middle;
+    margin: 0 20px;
+    font-size: 18px;
+    font-weight: normal;
+  }
+
+  .fa-bell {
+    font-size: 12px;
+    margin-right: 4px;
+    color: #eee;
+  }
+
+  .alert-preview {
+    float: left;
+    line-height: 30px;
+    vertical-align: middle;
+    margin-left: 20px;
+    font-size: 15px;
+  }
+
+  .alert-view {
+    overflow: scroll;
+    margin-left: 20px;
+    font-size: 15px;
+    margin-top: 5px;
+    p {
+      margin: 0;
+    }
+  }
+
+  .pull-down {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 18px;
+    padding: 4px 0;
+    cursor: pointer;
+
+    .fa {
+      color: #fff;
+    }
+  }
+}
+
+
+
+.react-grid-layout {
+  position: relative;
+  transition: height 200ms ease;
+}
+.react-grid-item {
+  transition: all 200ms ease;
+  transition-property: left, top;
+}
+.react-grid-item.cssTransforms {
+  transition-property: transform;
+}
+.react-grid-item.resizing {
+  z-index: 1;
+  will-change: width, height;
+}
+
+.react-grid-item.react-draggable-dragging {
+  transition: none;
+  z-index: 3;
+  will-change: transform;
+}
+
+.react-grid-item.react-grid-placeholder {
+  background: red;
+  opacity: 0.2;
+  transition-duration: 100ms;
+  z-index: 2;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+}
+
+.react-grid-item > .react-resizable-handle {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  bottom: 0;
+  right: 0;
+  cursor: se-resize;
+}
+
+.react-grid-item > .react-resizable-handle::after {
+  content: "";
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 5px;
+  height: 5px;
+  border-right: 2px solid rgba(0, 0, 0, 0.4);
+  border-bottom: 2px solid rgba(0, 0, 0, 0.4);
+}
+
+
+.react-resizable {
+  position: relative;
+}
+.react-resizable-handle {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  bottom: 0;
+  right: 0;
+  background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2IDYiIHN0eWxlPSJiYWNrZ3JvdW5kLWNvbG9yOiNmZmZmZmYwMCIgeD0iMHB4IiB5PSIwcHgiIHdpZHRoPSI2cHgiIGhlaWdodD0iNnB4Ij48ZyBvcGFjaXR5PSIwLjMwMiI+PHBhdGggZD0iTSA2IDYgTCAwIDYgTCAwIDQuMiBMIDQgNC4yIEwgNC4yIDQuMiBMIDQuMiAwIEwgNiAwIEwgNiA2IEwgNiA2IFoiIGZpbGw9IiMwMDAwMDAiLz48L2c+PC9zdmc+');
+  background-position: bottom right;
+  padding: 0 3px 3px 0;
+  background-repeat: no-repeat;
+  background-origin: content-box;
+  box-sizing: border-box;
+  cursor: se-resize;
+}

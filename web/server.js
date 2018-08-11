@@ -10,7 +10,7 @@ const app = express();
 const server = http.createServer(app);
 
 const assetsFolder = './assets/';
-const publicFolder = './public';
+const publicFolder = './dist';
 
 global['DEPLOY_VERSION'] = Date.now();
 
@@ -23,7 +23,14 @@ app.use(bodyParser.json())
   .use(`/js/app_${DEPLOY_VERSION}.js`, express.static(path.join(__dirname, publicFolder + '/js/app.js'), { maxAge: '2d' }))
   .use('/js/*', express.static(path.join(__dirname, publicFolder + '/js'), { maxAge: '2d' }))
   .set('views', path.join(__dirname, assetsFolder + '/templates'))
-  .set('view engine', 'ejs');
+  .set('view engine', 'ejs')
+  .get([
+    '/'
+  ], (req, res) => {
+    res.render('app', {
+      urlName: `${req.protocol}://${req.get('host')}`
+    });
+  });
 
 // start the server
 (function (port) {
