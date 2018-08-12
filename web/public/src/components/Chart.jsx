@@ -161,6 +161,7 @@ class CandleStickChartWithDarkTheme extends React.Component {
 						wickStroke={d => d.close > d.open ? "#00C288" : "#FC1B51"}
 						fill={d => d.close > d.open ? "#00C288" : "#FC1B51"} />
 					{this.props.children}
+					{this.props.renderFilters(data)}
           <EdgeIndicator itemType="last" orient="right" edgeAt="right"
             displayFormat={format('.8f')}
 						yAccessor={d => d.close} fill={d => d.close > d.open ? "#00C288" : "#FC1B51"}/>
@@ -178,6 +179,7 @@ CandleStickChartWithDarkTheme.propTypes = {
 	width: PropTypes.number.isRequired,
 	ratio: PropTypes.number.isRequired,
 	type: PropTypes.oneOf(["svg", "hybrid"]).isRequired,
+	renderFilters: React.PropTypes.func.isRequired
 };
 
 CandleStickChartWithDarkTheme.defaultProps = {

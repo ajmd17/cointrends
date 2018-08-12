@@ -8,6 +8,13 @@ import {
 
 import Chart from './Chart';
 import Accordion from './Accordion';
+import WilliamsFractals from './filters/WilliamsFractals';
+import SupportResistance from './filters/SupportResistance';
+
+const filters = {
+  'support_resistance': (levels, data) => <SupportResistance levels={levels} />,
+  'fractals': (fractals, data) => <WilliamsFractals fractals={fractals} data={data} />
+};
 
 class ContentPanel extends React.Component {
   static propTypes = {
@@ -21,6 +28,7 @@ class ContentPanel extends React.Component {
     super(props);
     this.state = {
       data: null,
+      filters: {},
       symbolList: [],
       selectedSymbol: null,
       selectedExchange: null,
@@ -208,6 +216,7 @@ class ContentPanel extends React.Component {
 
       let newState = {
         data: null,
+        filters: {},
         tickerColor: '#000'
       };
 
@@ -374,7 +383,24 @@ class ContentPanel extends React.Component {
         <Accordion title='Chart' isOpened={this.props.showingChart} onClick={(showingChart) => this.props.onUpdate({ showingChart })}>
           {this.state.data == null
             ? null
-            : <Chart type='hybrid' data={this.state.data}>
+            : <Chart type='hybrid' data={this.state.data} renderFilters={(data) => {
+                if (this.state.filters == null) return null;
+
+                const keys = Object.keys(this.state.filters);
+
+                if (keys.length == 0) return null;
+
+                return (
+                  <div>
+                    {keys.map((key, index) => {
+                      if (filters[key] == null) return null;
+                      return (
+                        filters[key](this.state.filters[key], this.state.data)
+                      );
+                    })}
+                  </div>
+                );
+              }}>
 
               </Chart>}
           <div className='chart-options'>
