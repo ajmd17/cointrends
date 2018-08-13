@@ -3,5 +3,7 @@
   "API_URL": "localhost",
 
   "WEB_PORT": 8080,
-  "WEB_URL": "localhost"
+  "WEB_URL": "localhost",
+
+  "JWT_TOKEN_SECRET": "enter secret phrase here"
 }

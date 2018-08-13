@@ -18,7 +18,8 @@ module.exports = {
       'Promise': 'es6-promise'
     }),
     new webpack.DefinePlugin({
-      'DURATIONS': JSON.stringify(require('../durations'))
+      'DURATIONS': JSON.stringify(require('../durations')),
+      'ALERT_TYPES': JSON.stringify(require('../alert-types'))
     })
   ],
   module: {

@@ -1,0 +1,48 @@
+nav.navbar {
+  $nav-height: 35px;
+  height: $nav-height;
+  font-size: 18px;
+  margin: 0 20px;
+  // margin-top: $nav-height;
+  line-height: $nav-height;
+  vertical-align: middle;
+
+  h1 {
+    display: inline-block;
+    margin: 0;
+    font-size: 26px;
+    color: #fff;
+    
+  }
+
+  img.logo {
+    float: left;
+    width: 48px;
+    height: 48px;
+    margin-right: 12px;
+    margin-top: ($nav-height - 48px) / 2;
+  }
+
+  ul {
+    float: right;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 19px;
+
+    li {
+      display: inline;
+      padding: 0 18px;
+
+      a {
+        display: inline;
+        color: #D5CDE0;
+        text-decoration: none;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+}

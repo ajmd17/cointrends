@@ -5,7 +5,7 @@ const { serial } = require('./util');
 const durations = require('./durations');
 
 class Monitor {
-  constructor(startDate, callbacks, pipelineSteps=[], interval=10000) {
+  constructor(startDate, callbacks, pipelineSteps=[], interval=1000) {
     if (typeof callbacks.onFetch !== 'function') {
       throw Error('callbacks.onFetch must be a function that returns a Promise');
     }
@@ -82,9 +82,13 @@ class Monitor {
   }
 
   _aggregateData(durationMs, start, end) {
+    console.log('check ' + durationMs + ' : (' + start + ', ' + end + ')');
     return this.mainQueryRange.query(start, end).then((results) => {
       // aggregate the results from the main QueryRange. results will be stored in this.ranges[duration] for later use, as well.
       let summedData = [];
+      /* @FIXME: this is going to be impossible to calculate volume on if we just keep adding it up
+         look into storing an array of each 5m candle and summing it all up
+      */
 
       results.forEach((candle) => {
         if (summedData.length == 0) {

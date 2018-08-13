@@ -8,12 +8,13 @@ import {
 
 import Chart from './Chart';
 import Accordion from './Accordion';
+import AlertOptions from './AlertOptions';
 import WilliamsFractals from './filters/WilliamsFractals';
 import SupportResistance from './filters/SupportResistance';
 
 const filters = {
   'support_resistance': (levels, data) => <SupportResistance levels={levels} />,
-  'fractals': (fractals, data) => <WilliamsFractals fractals={fractals} data={data} />
+  'fractals': (fractals, data) => <WilliamsFractals fractals={{ up: fractals.up.map(({ timestamp }) => data.find(x => x.timestamp == timestamp)), down: fractals.down.map(({ timestamp }) => data.find(x => x.timestamp == timestamp)) }} />
 };
 
 class ContentPanel extends React.Component {
@@ -90,7 +91,7 @@ class ContentPanel extends React.Component {
       }
 
       startDate.setSeconds(0, 0);
-      endDate.setSeconds(0, 0);
+      //endDate.setSeconds(0, 0);
 
       console.log({ startDate, endDate });
 
@@ -356,16 +357,10 @@ class ContentPanel extends React.Component {
           
         </div>
 
-        <Accordion title='Advanced' isOpened={this.props.showingAdvancedOptions} onClick={(showingAdvancedOptions) => this.props.onUpdate({ showingAdvancedOptions })}>
-          <div>
-            <span>Update interval: </span>
-            <input type='number' value={this.state.intervalValue} onChange={(event) => this.setState({ intervalValue: Math.min(Math.max(500, event.target.value), 15000) })} />
-          </div>
-          <div>
-            <span>Point cluster percentage threshold: </span>
-            <input type='number' value={this.props.pointClusterPercentageThreshold} onChange={(event) => this.props.onUpdate({ pointClusterPercentageThreshold: event.target.value })} />
-          </div>
-        </Accordion>
+        <div>
+          <span>Update interval: </span>
+          <input type='number' value={this.state.intervalValue} onChange={(event) => this.setState({ intervalValue: Math.min(Math.max(500, event.target.value), 15000) })} />
+        </div>
 
       </div>
     );
@@ -384,7 +379,7 @@ class ContentPanel extends React.Component {
           {this.state.data == null
             ? null
             : <Chart type='hybrid' data={this.state.data} renderFilters={(data) => {
-                if (this.state.filters == null) return null;
+                if (this.state.filters == null || data.length == 0) return null;
 
                 const keys = Object.keys(this.state.filters);
 
@@ -395,7 +390,7 @@ class ContentPanel extends React.Component {
                     {keys.map((key, index) => {
                       if (filters[key] == null) return null;
                       return (
-                        filters[key](this.state.filters[key], this.state.data)
+                        filters[key](this.state.filters[key], data)
                       );
                     })}
                   </div>
@@ -403,27 +398,10 @@ class ContentPanel extends React.Component {
               }}>
 
               </Chart>}
-          <div className='chart-options'>
-            <div className='field'>
-              <label>S&amp;R detail:</label>
-              <input type='number'
-                value={this.state.supportAndResistanceDetail != null ? this.state.supportAndResistanceDetail : this.props.supportAndResistanceDetail}
-                onChange={(event) => { this.setState({ supportAndResistanceDetail: event.target.value }); }}
-                onKeyDown={(event) => {
-                  if (event.keyCode == 13 && this.state.supportAndResistanceDetail != this.props.supportAndResistanceDetail) {
-                    this.props.onUpdate({ supportAndResistanceDetail: this.state.supportAndResistanceDetail });
-                  }
-                }}
-              />
-            </div>
-            <button
-              className={`btn small flat${this.state.supportAndResistanceDetail == null || this.state.supportAndResistanceDetail == this.props.supportAndResistanceDetail ? ' disabled' : ''}`}
-              disabled={this.state.supportAndResistanceDetail == null || this.state.supportAndResistanceDetail == this.props.supportAndResistanceDetail}
-              onClick={() => { this.props.onUpdate({ supportAndResistanceDetail: this.state.supportAndResistanceDetail }); }}
-            >
-              Recalculate
-            </button>
-          </div>
+        </Accordion>
+        
+        <Accordion title='Alerts'>
+          <AlertOptions data={this.state.data} />
         </Accordion>
       </div>
     );

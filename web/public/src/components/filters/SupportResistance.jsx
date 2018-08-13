@@ -12,7 +12,7 @@ class SupportResistance extends React.Component {
     /* @TODO */
     return (
       <div>
-        {levels.map((value, index) => {
+        {this.props.levels.map((value, index) => {
           const color = /*value <= this.currentPrice() ? "#00C288" :*/ "#FC1B51";
 
           return (
@@ -26,4 +26,4 @@ class SupportResistance extends React.Component {
   }
 }
 
-export default WilliamsFractals;
+export default SupportResistance;

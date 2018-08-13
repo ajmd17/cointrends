@@ -2,7 +2,9 @@ import * as React from 'react';
 import * as GridLayout from 'react-grid-layout';
 import axios from 'axios';
 
+import Navbar from '../components/Navbar';
 import ContentPanel from '../components/ContentPanel';
+import LoginModal from '../components/LoginModal';
 
 const defaultContentPanel = {
   pointClusterPercentageThreshold: 0.003,
@@ -19,7 +21,8 @@ class MainContent extends React.Component {
     super(props);
 
     this.state = {
-      contentPanels: []
+      contentPanels: [],
+      loginModalShowing: false
     };
     this._lastAlert = null;
     this._prices = {};
@@ -141,6 +144,14 @@ class MainContent extends React.Component {
     // @TODO: significant trade tool?
     return (
       <main className='main-content'>
+        <Navbar onLoginClick={() => {
+          this.setState({ loginModalShowing: true });
+        }}/>
+
+        {this.state.loginModalShowing
+          ? <LoginModal onModalClose={() => { this.setState({ loginModalShowing: false }); }} />
+          : null}
+
         {/* @TODO: chart with configurable tools */}
         {/* <GridLayout className="layout" layout={layout} cols={12} rowHeight={30} width={1200}> */}
           {this.state.contentPanels.map((panel, i) => {

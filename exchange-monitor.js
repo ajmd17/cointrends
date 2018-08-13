@@ -17,7 +17,7 @@ class ExchangeMonitor extends Monitor {
         let urlString = url({ symbol: this.symbol, interval: this.mainQueryRange.interval, start, end });
     
         let duration = ((new Date(end).valueOf() - new Date(start).valueOf()) / 60000).toFixed(2);
-        console.log('Fetch remote - ' + duration + 'm range');
+        console.log('Fetch remote (' + this.mainQueryRange.intervalMs + ') - ' + duration + 'm range');
     
         return new Promise((resolve, reject) => {
           request.get(urlString, (err, resp) => {

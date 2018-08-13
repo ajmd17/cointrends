@@ -42,7 +42,7 @@ class QueryRange {
 
   }
 
-  query(startTime, endTime, latest=false) {
+  query(startTime, endTime, latest=true) {
     startTime = Math.floor(Number(startTime) / this.intervalMs) * this.intervalMs;
     endTime = (Math.floor(Number(endTime) / this.intervalMs) * this.intervalMs) //+ this.intervalMs;
 
@@ -55,6 +55,18 @@ class QueryRange {
         }
       }
     }
+    // let spliceIndex = -1;
+    // for (let i = this.data.length - 1; i >= 0; i--) {
+    //   if (Date.now() - this.data[i].timestamp <= this.intervalMs) {
+    //     spliceIndex = i;
+    //   } else {
+    //     break;
+    //   }
+    // }
+
+    // if (spliceIndex != -1) {
+    //   this.data.splice(spliceIndex);
+    // }
 
     let sections = this._filterSubsections(this._populateSections(startTime, endTime), startTime, endTime);
     let toProcess = sections.map(({ found, values }, index) => {
@@ -193,7 +205,7 @@ class QueryRange {
       let index = findTimestampIndex(dataCopy, i);
       let prevIndex = findTimestampIndex(dataCopy, i - this.intervalMs);
 
-      if (i == startTime || sections[sections.length - 1].values.length >= 500 || Math.sign(index + 1) != Math.sign(prevIndex + 1)) {
+      if (i == startTime || sections[sections.length - 1].values.length >= MAX_LEN || Math.sign(index + 1) != Math.sign(prevIndex + 1)) {
         sections.push({
           found: index != -1,
           values: []

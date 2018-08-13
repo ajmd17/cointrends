@@ -35,20 +35,6 @@ import { ema, stochasticOscillator, bollingerBand } from "react-stockcharts/lib/
 import { fitWidth } from "react-stockcharts/lib/helper";
 import { last } from "react-stockcharts/lib/utils";
 
-const bbAppearance = {
-	stroke: {
-		top: "#964B00",
-		middle: "#FF6600",
-		bottom: "#964B00",
-	},
-	fill: "#4682B4"
-};
-const stoAppearance = {
-	stroke: Object.assign({},
-		StochasticSeries.defaultProps.stroke,
-		{ top: "#37a600", middle: "#b8ab00", bottom: "#37a600" })
-};
-
 class CandleStickChartWithDarkTheme extends React.Component {
 	constructor(props) {
 		super(props);
@@ -86,37 +72,8 @@ class CandleStickChartWithDarkTheme extends React.Component {
 		const yGrid = showGrid ? { innerTickSize: -1 * gridWidth, tickStrokeOpacity: 0.2 } : {};
 		const xGrid = showGrid ? { innerTickSize: -1 * gridHeight, tickStrokeOpacity: 0.2 } : {};
 
-		const ema20 = ema()
-			.id(0)
-			.options({ windowSize: 20 })
-			.merge((d, c) => {d.ema20 = c;})
-			.accessor(d => d.ema20);
 
-		const ema50 = ema()
-			.id(2)
-			.options({ windowSize: 50 })
-			.merge((d, c) => {d.ema50 = c;})
-			.accessor(d => d.ema50);
-
-		const slowSTO = stochasticOscillator()
-			.options({ windowSize: 14, kWindowSize: 3 })
-			.merge((d, c) => {d.slowSTO = c;})
-			.accessor(d => d.slowSTO);
-		const fastSTO = stochasticOscillator()
-			.options({ windowSize: 14, kWindowSize: 1 })
-			.merge((d, c) => {d.fastSTO = c;})
-			.accessor(d => d.fastSTO);
-		const fullSTO = stochasticOscillator()
-			.options({ windowSize: 14, kWindowSize: 3, dWindowSize: 4 })
-			.merge((d, c) => {d.fullSTO = c;})
-			.accessor(d => d.fullSTO);
-
-		const bb = bollingerBand()
-			.merge((d, c) => {d.bb = c;})
-			.accessor(d => d.bb);
-
-
-		const calculatedData = bb(ema20(ema50(slowSTO(fastSTO(fullSTO(initialData))))));
+		const calculatedData = initialData;
 		const xScaleProvider = discontinuousTimeScaleProvider
 			.inputDateAccessor(d => d.date);
 		const {
@@ -143,7 +100,7 @@ class CandleStickChartWithDarkTheme extends React.Component {
 				displayXAccessor={displayXAccessor}
 			>
 				<Chart id={1} height={325}
-					yExtents={[d => [d.high, d.low], bb.accessor(), ema20.accessor(), ema50.accessor()]}
+					yExtents={[d => [d.high, d.low]]}
 					padding={{ top: 0, bottom: 0 }}
 				>
 					<YAxis axisAt="right" orient="right" ticks={8} showTicks={false} {...yGrid} inverted={true}
@@ -168,7 +125,16 @@ class CandleStickChartWithDarkTheme extends React.Component {
 
 					<OHLCTooltip origin={[-40, -10]}/>
 				</Chart>
-				
+				<Chart id={2}
+					yExtents={d => d.volume}
+					height={100} origin={(w, h) => [0, h - 100]}
+				> *
+					<YAxis axisAt="left" orient="left" ticks={5} tickFormat={format(".2s")} tickStroke="#555555" />
+					<BarSeries
+						yAccessor={d => d.volume}
+						opacity={0.5}
+						fill={d => d.close > d.open ? "#8cd9c2" : "#e6b3be"} />
+        </Chart>
 				<CrossHairCursor stroke="#222222" />
 			</ChartCanvas>
 		);
