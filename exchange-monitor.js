@@ -1,23 +1,25 @@
 const request = require('request');
 const path = require('path');
 const fs = require('fs');
+const parseDuration = require('parse-duration');
 
 const Monitor = require('./monitor');
 const Pipeline = require('./pipeline');
-const { Fractals, SupportResistance } = require('./steps');
+const { Fractals, SupportResistance, TDSequential } = require('./steps');
 
 const exchanges = require('./exchanges');
 
 class ExchangeMonitor extends Monitor {
   constructor(exchange, symbol, startDate) {
     super(startDate, {
-      onFetch: (start, end) => {
+      onFetch: (interval, start, end) => {
         console.assert(exchanges[this.exchange] != null, `exchange ${this.exchange} not found`);
         const { url, transform } = exchanges[this.exchange];
-        let urlString = url({ symbol: this.symbol, interval: this.mainQueryRange.interval, start, end });
+        let urlString = url({ symbol: this.symbol, interval, start, end });
+        console.log('urlString = ', urlString);
     
         let duration = ((new Date(end).valueOf() - new Date(start).valueOf()) / 60000).toFixed(2);
-        console.log('Fetch remote (' + this.mainQueryRange.intervalMs + ') - ' + duration + 'm range');
+        console.log('Fetch remote (' + parseDuration(interval) + ') - ' + duration + 'm range');
     
         return new Promise((resolve, reject) => {
           request.get(urlString, (err, resp) => {
@@ -85,7 +87,7 @@ class ExchangeMonitor extends Monitor {
           });
         }
       }
-    }, [Fractals, SupportResistance]);
+    }, [Fractals, SupportResistance, TDSequential]);
 
     this.exchange = exchange;
     this.symbol = symbol;

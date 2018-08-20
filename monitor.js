@@ -20,9 +20,11 @@ class Monitor {
     for (let duration of durations) {
       this.ranges[duration] = {
         queryRange: duration != this.mainQueryRange.interval
-          ? new QueryRange(duration, (start, end) => {
-            return this._aggregateData(this.ranges[duration].queryRange.intervalMs, start, end);
-          })
+          ? new QueryRange(duration, (interval, start, end) => {
+              // temp
+              return callbacks.onFetch(interval, start, end);
+            //return this._aggregateData(this.ranges[duration].queryRange.intervalMs, start, end);
+            })
           : this.mainQueryRange,
         pipeline: new Pipeline(pipelineSteps)
       };
@@ -58,8 +60,9 @@ class Monitor {
         }
 
         // Promise.all causing a strange anomaly where values are written to mainQueryRange's data property in multiple places??
-        serial(aggRanges.map(k => () => this.ranges[k].queryRange.query(startDate, endDate).then(d => results[k] = { values: d }))).then(() => {
+        serial(aggRanges.map(k => () => this.ranges[k].queryRange.query(startDate, endDate, true).then(d => results[k] = { values: d }))).then(() => {
           for (let key in results) {
+            console.log('Run pipeline on timeframe ' + key + ' (' + this.ranges[key].queryRange.data.length + ')');
             results[key] = this.ranges[key].pipeline.run({ values: this.ranges[key].queryRange.data });
           }
 

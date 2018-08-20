@@ -42,12 +42,12 @@ class QueryRange {
 
   }
 
-  query(startTime, endTime, latest=true) {
+  query(startTime, endTime, latest=false) {
     startTime = Math.floor(Number(startTime) / this.intervalMs) * this.intervalMs;
-    endTime = (Math.floor(Number(endTime) / this.intervalMs) * this.intervalMs) //+ this.intervalMs;
+    endTime = (Math.floor(Number(endTime + ((latest && endTime + this.intervalMs >= Date.now()) ? this.intervalMs : 0)) / this.intervalMs) * this.intervalMs) //+ this.intervalMs;
 
     if (latest) {
-      endTime += this.intervalMs;
+      //endTime += this.intervalMs;
 
       if (this.data.length != 0) {
         if (endTime >= Date.now()) {
@@ -141,7 +141,7 @@ class QueryRange {
         }
       }
       console.assert(duplicates.length == 0, `Duplicates found: ${duplicates.join(', ')}`);
-      return () => this.fetchHandler(queryRequest.startTime, queryRequest.endTime, this.interval).then((result) => {
+      return () => this.fetchHandler(this.interval, queryRequest.startTime, queryRequest.endTime, this.interval).then((result) => {
         sections[queryRequest.index] = { found: false, values: result };
       });
     }));

@@ -18,6 +18,10 @@ class SupportResistance extends React.Component {
           return (
             <div key={index}>
               <StraightLine stroke={color} yValue={value} strokeWidth={1}/>
+
+              <EdgeIndicator itemType="last" orient="left"
+                yAccessor={d => value} fill={d => color}
+              />
             </div>
           );
         })}
