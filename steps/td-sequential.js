@@ -31,8 +31,7 @@ class TDSequential extends Step {
 
     for (let i = 0; i < data.length; i++) {
       //if (i < 9) continue;
-      let slice = data.slice(i, i + 9);
-      if (slice.length < 9) continue;
+      if (i < 5) continue;
       // if (bSetupCounter < 9) {
       //   if (bSetupCounter == 0 && data[i].close < data[i + 4].close && data[i + 1].close > data[i + 5].close) {
       //     bSetupCounter++;
@@ -44,18 +43,18 @@ class TDSequential extends Step {
       let bullishFlip;
       
 
-      if (data[i].close < data[i + 4].close && data[i + 1].close > data[i + 5].close) {
+      if (data[i].close < data[i - 4].close && data[i - 1].close > data[i - 5].close) {
         bearishFlip = 1;
         bullishFlip = 0;
-      } else if (data[i].close > data[i + 4].close && data[i + 1].close < data[i + 5].close) {
+      } else if (data[i].close > data[i - 4].close && data[i - 1].close < data[i - 5].close) {
         bullishFlip = 1;
         bearishFlip = 0;
       }
 
-      if (data[i].close < data[i + 4].close && bearishFlip) {
+      if (data[i].close < data[i - 4].close && bearishFlip) {
         TDSL++;
         TDSS = 0;
-      } else if (data[i].close > data[i + 4].close && bullishFlip) {
+      } else if (data[i].close > data[i - 4].close && bullishFlip) {
         TDSS++;
         TDSL = 0;
       }
@@ -69,7 +68,7 @@ class TDSequential extends Step {
       }
 
       if (TDSL == 9) {
-        let L = (data[i].low < data[i + 3].low && data[i].low < data[i + 2].low) || (data[i + 1].low < data[i + 2].low && data[i + 1].low < data[i + 3].low);
+        let L = (data[i].low < data[i - 3].low && data[i].low < data[i - 2].low) || (data[i - 1].low < data[i - 2].low && data[i - 1].low < data[i - 3].low);
 
         bearishFlip = 0;
         TDSL = 0;
@@ -86,7 +85,7 @@ class TDSequential extends Step {
       }
 
       if (TDSS == 9) {
-        let S = (data[i].high > data[i + 2].high && data[i].high > data[i + 3].high) || (data[i + 1].high > data[i + 3].high && data[i + 1].high > data[i + 2].high);
+        let S = (data[i].high > data[i - 2].high && data[i].high > data[i - 3].high) || (data[i - 1].high > data[i - 3].high && data[i - 1].high > data[i - 2].high);
 
         bullishFlip = 0;
         TDSS = 0;
@@ -98,7 +97,7 @@ class TDSequential extends Step {
       }
 
       if (buySetup) {
-        if (data[i].close <= data[i + 2].low) {
+        if (data[i].close <= data[i - 2].low) {
           buyCountdown++;
           // buycountdown
           buyCounts.push({ timestamp: data[i].timestamp, count: buyCountdown });
@@ -114,7 +113,7 @@ class TDSequential extends Step {
           buyCountdown = 0;
         }
       } else if (sellSetup) {
-        if (data[i].close >= data[i + 2].high) {
+        if (data[i].close >= data[i - 2].high) {
           sellCountdown++;
           // sellcountdown
           sellCounts.push({ timestamp: data[i].timestamp, count: sellCountdown });
