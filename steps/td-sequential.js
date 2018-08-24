@@ -30,7 +30,6 @@ class TDSequential extends Step {
     let bar8;
 
     for (let i = 0; i < data.length; i++) {
-      let currentData = data.slice(i, i + 9);
       //if (i < 9) continue;
       let slice = data.slice(i, i + 9);
       if (slice.length < 9) continue;
@@ -48,7 +47,7 @@ class TDSequential extends Step {
       if (data[i].close < data[i + 4].close && data[i + 1].close > data[i + 5].close) {
         bearishFlip = 1;
         bullishFlip = 0;
-      } else if (data[i].close > data[i + 4].close && data[i + 1] < data[i + 5].close) {
+      } else if (data[i].close > data[i + 4].close && data[i + 1].close < data[i + 5].close) {
         bullishFlip = 1;
         bearishFlip = 0;
       }
@@ -60,6 +59,8 @@ class TDSequential extends Step {
         TDSS++;
         TDSL = 0;
       }
+
+      // console.log('TDSL = ', TDSL);
 
       // LOWS
 
@@ -81,7 +82,7 @@ class TDSequential extends Step {
 
       // HIGHS
       if (TDSS > 0 && TDSS < 10) {
-        lows.push(data[i].high);
+        highs.push(data[i].high);
       }
 
       if (TDSS == 9) {
@@ -132,6 +133,8 @@ class TDSequential extends Step {
 
     }
 
+    console.log('highs = ', highs.length)
+    console.log('lows = ', lows.length)
     return { buyCounts, sellCounts };
 
   }

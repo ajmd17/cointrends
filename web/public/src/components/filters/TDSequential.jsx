@@ -7,9 +7,10 @@ import {
 	hexToRGBA, isDefined, functor, plotDataLengthBarWidth, head, last
 } from "react-stockcharts/lib/utils";
 
-class Arrow extends React.Component {
+class CountArrow extends React.Component {
   static propTypes = {
-    direction: React.PropTypes.oneOf(['up', 'down'])
+    direction: React.PropTypes.oneOf(['up', 'down']),
+    count: React.PropTypes.number.isRequired
   };
 
   drawOnCanvas(ctx, moreProps) {
@@ -37,17 +38,20 @@ class Arrow extends React.Component {
           ctx.beginPath();
 
           if (this.props.direction == 'down') {
-            ctx.fillStyle = '#FC1B51';
+            ctx.fillStyle = '#AA0000';
             ctx.moveTo(x - (width / 2), y - height);
             ctx.lineTo(x + (width / 2), y - height);
             ctx.lineTo(x, y);
           } else if (this.props.direction == 'up') {
-            ctx.fillStyle = '#00C288';
+            ctx.fillStyle = '#00AA00';
             ctx.moveTo(x - (width / 2), y + height);
             ctx.lineTo(x + (width / 2), y + height);
             ctx.lineTo(x, y);
           }
           ctx.fill();
+          ctx.font = '15px Arial';
+         // const text = this.props.count.toString();
+         // ctx.fillText(text, x - (ctx.measureText(text).width / 2), y + height + 15);
         });
       });
     });
@@ -84,7 +88,12 @@ class TDSequential extends React.Component {
       <div>
         {this.props.tdSequential.buyCounts.map(({ obj, count }, index) => {
           return (
-            <Arrow direction='up' object={obj} key={index} />
+            <CountArrow direction='up' object={obj} count={count} key={index} />
+          );
+        })}
+        {this.props.tdSequential.sellCounts.map(({ obj, count }, index) => {
+          return (
+            <CountArrow direction='down' object={obj} count={count} key={index} />
           );
         })}
       </div>

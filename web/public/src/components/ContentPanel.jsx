@@ -9,6 +9,7 @@ import {
 import Chart from './Chart';
 import Accordion from './Accordion';
 import AlertOptions from './AlertOptions';
+import LoadingMessage from './LoadingMessage';
 import WilliamsFractals from './filters/WilliamsFractals';
 import SupportResistance from './filters/SupportResistance';
 import TDSequential from './filters/TDSequential';
@@ -16,7 +17,7 @@ import TDSequential from './filters/TDSequential';
 const filters = {
   'support_resistance': (levels, data) => <SupportResistance levels={levels} />,
   //'fractals': (fractals, data) => <WilliamsFractals fractals={{ up: fractals.up.map(({ timestamp }) => data.find(x => x.timestamp == timestamp)), down: fractals.down.map(({ timestamp }) => data.find(x => x.timestamp == timestamp)) }} />,
-  'td_sequential': (tdSequential, data) => <TDSequential tdSequential={{ buyCounts: tdSequential.buyCounts.map(({ timestamp, count }) => { obj: data.find(x => x.timestamp == timestamp), count }), sellCounts: tdSequential.sellCounts.map(({ timestamp, count }) => { obj: data.find(x => x.timestamp == timestamp), count }) }} />
+  'td_sequential': (tdSequential, data) => <TDSequential tdSequential={{ buyCounts: tdSequential.buyCounts.map(({ timestamp, count }) => ({ obj: data.find(x => x.timestamp == timestamp), count })), sellCounts: tdSequential.sellCounts.map(({ timestamp, count }) => ({ obj: data.find(x => x.timestamp == timestamp), count })) }} />
 };
 
 class ContentPanel extends React.Component {
@@ -379,7 +380,7 @@ class ContentPanel extends React.Component {
 
         <Accordion title='Chart' isOpened={this.props.showingChart} onClick={(showingChart) => this.props.onUpdate({ showingChart })}>
           {this.state.data == null
-            ? null
+            ? <LoadingMessage />
             : <Chart type='hybrid' data={this.state.data} renderFilters={(data) => {
                 if (this.state.filters == null || data.length == 0) return null;
 
