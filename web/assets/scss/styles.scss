@@ -9,6 +9,10 @@ $small-phone-width: 320px;
   z-index: 500;
 }
 
+.dark-theme {
+  background: #303030;
+}
+
 @mixin default-width {
   @media (min-width: #{$desktop-width}) {
     @content;

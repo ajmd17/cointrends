@@ -33,7 +33,7 @@ class CountArrow extends React.Component {
             ? yScale(d.high) - 5
             : yScale(d.low) + 5;
 
-          ctx.font = '15px Arial';
+          ctx.font = '12px Arial';
           const text = this.props.count.toString();
 
           const width = 10;
@@ -41,13 +41,13 @@ class CountArrow extends React.Component {
           ctx.beginPath();
 
           if (this.props.direction == 'down') {
-            ctx.fillStyle = '#AA0000';
+            ctx.fillStyle = '#00B250';
             ctx.moveTo(x - (width / 2), y - height);
             ctx.lineTo(x + (width / 2), y - height);
             ctx.lineTo(x, y);
             ctx.fillText(text, x - (ctx.measureText(text).width / 2), y - height - 15);
           } else if (this.props.direction == 'up') {
-            ctx.fillStyle = '#00AA00';
+            ctx.fillStyle = '#FF494A';
             ctx.moveTo(x - (width / 2), y + height);
             ctx.lineTo(x + (width / 2), y + height);
             ctx.lineTo(x, y);
@@ -103,13 +103,14 @@ class TDSequential extends React.Component {
           }
         })} */}
         {this.props.tdSequential.map((obj, index) => {
+          if (obj.obj == null) return null;
           return (
-            <div key={index}>
+            <div key={obj.timestamp}>
               {obj.sellCountdown && obj.sellCountdown < 10
-                ? <CountArrow direction='up' object={obj.obj} count={obj.sellCountdown} />
+                ? <CountArrow direction='down' object={obj.obj} count={obj.sellCountdown} />
                 : null}
               {obj.buyCountdown && obj.buyCountdown < 10
-                ? <CountArrow direction='down' object={obj.obj} count={obj.buyCountdown} />
+                ? <CountArrow direction='up' object={obj.obj} count={obj.buyCountdown} />
                 : null}
             </div>
           );

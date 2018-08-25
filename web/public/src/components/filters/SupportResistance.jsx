@@ -13,11 +13,11 @@ class SupportResistance extends React.Component {
     return (
       <div>
         {this.props.levels.map((value, index) => {
-          const color = /*value <= this.currentPrice() ? "#00C288" :*/ "#FC1B51";
+          const color = /*value <= this.currentPrice() ? "#00C288" :*/ "#197CFE";
 
           return (
             <div key={index}>
-              <StraightLine stroke={color} yValue={value} strokeWidth={1}/>
+              <StraightLine stroke={color} yValue={value} strokeWidth={2}/>
 
               <EdgeIndicator itemType="last" orient="left"
                 yAccessor={d => value} fill={d => color}

@@ -88,55 +88,57 @@ class CandleStickChartWithDarkTheme extends React.Component {
 		const xExtents = [start, end];
 
 		return (
-			<ChartCanvas
-				height={height}
-				width={width}
-				ratio={ratio}
-				margin={margin}
-				type={type}
-				data={data}
-				xScale={xScale}
-				xAccessor={xAccessor}
-				displayXAccessor={displayXAccessor}
-			>
-				<Chart id={1} height={325}
-					yExtents={[d => [d.high, d.low]]}
-					padding={{ top: 0, bottom: 0 }}
+			<div className=''>
+				<ChartCanvas
+					height={height}
+					width={width}
+					ratio={ratio}
+					margin={margin}
+					type={type}
+					data={data}
+					xScale={xScale}
+					xAccessor={xAccessor}
+					displayXAccessor={displayXAccessor}
 				>
-					<YAxis axisAt="right" orient="right" ticks={8} showTicks={false} {...yGrid} inverted={true}
-						tickStroke="#555" />
-					<XAxis axisAt="bottom" orient="bottom" showTicks={true} outerTickSize={1}
-						stroke="#555" opacity={0.5} />
+					<Chart id={1} height={325}
+						yExtents={[d => [d.high, d.low]]}
+						padding={{ top: 0, bottom: 0 }}
+					>
+						<YAxis axisAt="right" orient="right" ticks={8} showTicks={false} {...yGrid} inverted={true}
+							tickStroke="#555" />
+						<XAxis axisAt="bottom" orient="bottom" showTicks={true} outerTickSize={1}
+							stroke="#555" opacity={0.5} />
 
-					<MouseCoordinateY
-						at="right"
-						orient="right"
-						displayFormat={format('.8f')} />
+						<MouseCoordinateY
+							at="right"
+							orient="right"
+							displayFormat={format('.8f')} />
 
-					<CandlestickSeries
-						stroke={d => d.close > d.open ? "#00C288" : "#FC1B51"}
-						wickStroke={d => d.close > d.open ? "#00C288" : "#FC1B51"}
-						fill={d => d.close > d.open ? "#00C288" : "#FC1B51"} />
-					{this.props.children}
-					{this.props.renderFilters(data)}
-          <EdgeIndicator itemType="last" orient="right" edgeAt="right"
-            displayFormat={format('.8f')}
-						yAccessor={d => d.close} fill={d => d.close > d.open ? "#00C288" : "#FC1B51"}/>
+						<CandlestickSeries
+							stroke={d => d.close > d.open ? "#00B250" : "#B21D10"}
+							wickStroke={d => d.close > d.open ? "#00B250" : "#B21D10"}
+							fill={d => d.close > d.open ? "#00B250" : "#B21D10"}/>
+						{this.props.children}
+						{this.props.renderFilters(data)}
+						<EdgeIndicator itemType="last" orient="right" edgeAt="right"
+							displayFormat={format('.8f')}
+							yAccessor={d => d.close} fill={d => d.close > d.open ? "#00B250" : "#B21D10"}/>
 
-					<OHLCTooltip origin={[-40, -10]}/>
-				</Chart>
-				<Chart id={2}
-					yExtents={d => d.volume}
-					height={100} origin={(w, h) => [0, h - 100]}
-				> *
-					<YAxis axisAt="left" orient="left" ticks={5} tickFormat={format(".2s")} tickStroke="#555555" />
-					<BarSeries
-						yAccessor={d => d.volume}
-						opacity={0.5}
-						fill={d => d.close > d.open ? "#8cd9c2" : "#e6b3be"} />
-        </Chart>
-				<CrossHairCursor stroke="#222222" />
-			</ChartCanvas>
+						<OHLCTooltip origin={[-40, -10]}/>
+					</Chart>
+					{/* <Chart id={2}
+						yExtents={d => d.volume}
+						height={100} origin={(w, h) => [0, h - 100]}
+					> *
+						<YAxis axisAt="left" orient="left" ticks={5} tickFormat={format(".2s")} tickStroke="#555555" />
+						<BarSeries
+							yAccessor={d => d.volume}
+							opacity={0.5}
+							fill={d => d.close > d.open ? "#8cd9c2" : "#e6b3be"} />
+					</Chart> */}
+					<CrossHairCursor stroke="#222222" />
+				</ChartCanvas>
+			</div>
 		);
 	}
 }

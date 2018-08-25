@@ -9,8 +9,8 @@ import LoginModal from '../components/LoginModal';
 const defaultContentPanel = {
   pointClusterPercentageThreshold: 0.003,
   supportAndResistanceDetail: 20,
-  timespan: '15m',
-  dateRange: [Date.now() - (60000 * 60 * 24 * 7 * 16) /* 16 weeks */, null],
+  timespan: '4h',
+  dateRange: [Date.now() - (60000 * 60 * 24 * 7 * 4) /* 4 weeks */, null],
   showingAdvancedOptions: false,
   showingMovingAverages: false,
   showingChart: true
@@ -29,7 +29,15 @@ class MainContent extends React.Component {
   }
 
   componentDidMount() {
-    let contentPanels = [{ ...defaultContentPanel }, { ...defaultContentPanel }];
+    let contentPanels = [{
+      ...defaultContentPanel,
+      selectedExchange: 'binance',
+      selectedSymbol: 'BTCUSDT'
+    }, {
+      ...defaultContentPanel,
+      selectedExchange: 'binance',
+      selectedSymbol: 'ETHUSDT'
+    }];
 
     if (window.location.hash != null && window.location.hash != '') {
       let hash = window.location.hash;
