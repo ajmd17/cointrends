@@ -1,11 +1,21 @@
 nav.navbar {
-  $nav-height: 35px;
   height: $nav-height;
   font-size: 18px;
-  margin: 0 20px;
+  top: 0;
+  // margin: 0 20px;
   // margin-top: $nav-height;
+
   line-height: $nav-height;
   vertical-align: middle;
+  position: fixed;
+  width: 100%;
+  background: #303030;
+  // box-shadow: 0 0 4px rgba(0,0,0,0.3);
+  z-index: 1000;
+
+  .nav-content {
+    margin: 0 10px;
+  }
 
   h1 {
     display: inline-block;

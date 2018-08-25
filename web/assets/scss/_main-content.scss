@@ -1,18 +1,22 @@
 .main-content {
   flex: 1;
-  padding-top: 20px;
 
   // @import './_intro-nav.scss';
   // @import './_main-content.scss';
   // @import './_footer.scss';
 
   position: absolute;
+  top: $nav-height;
   width: 100%;
   min-height: 100%;
   background-color: #f7f8fa;
-  background-image: url('/images/header-bg.jpg');
+  // background-image: url('/images/header-bg.jpg');
   display: flex;
   flex-direction: column;
+
+  > .content { 
+    margin-left: $sidebar-width;
+  }
 }
 
 .chart-options {
@@ -23,7 +27,7 @@
   margin: 20px;
   padding: 10px 20px;
   background-color: #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 8px -1px rgba(72, 90, 105, 0.2);
   border-radius: 8px;
 }
 

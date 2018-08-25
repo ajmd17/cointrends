@@ -43,10 +43,13 @@ $small-phone-width: 320px;
   }
 }
 
+$sidebar-width: 220px;
+$nav-height: 50px;
 @import './_main-content.scss';
 @import './_navbar.scss';
 @import './_modal.scss';
 @import './_accordion.scss';
+@import './_sidebar.scss';
 
 body {
   height: 100%;

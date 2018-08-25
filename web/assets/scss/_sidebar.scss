@@ -1,0 +1,48 @@
+.sidebar {
+  float: left;
+  position: fixed;
+  width: $sidebar-width;
+  height: 100%; // fallback
+  height: calc(100% - 50px);
+  max-height: 100%;
+  margin-left: -$sidebar-width;
+  color: #111;
+  background-color: #FFFFFB;
+  overflow-y: auto;
+  
+  // @include desktop {
+  //   width: $sq-sidebar-left-width-desktop;
+  //   margin-left: -$sq-sidebar-left-width-desktop;
+  // }
+
+  // @include tablet {
+  //   display: none;
+  // }
+  // @TODO: mobile, hide by default but show full screen when summoned
+
+
+  h4 {
+    margin: 0;
+    font-weight: normal;
+    text-transform: uppercase;
+    font-size: 14px;
+    // color: $sq-text-color-light;
+  }
+
+  .back-to-categories {
+    img {
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 30px;
+    }
+
+    span {
+      margin: 0;
+      margin-left: 4px;
+      vertical-align: middle;
+      line-height: 30px;
+      font-size: 18px;
+      // color: $sq-highlight-color;
+    }
+  }
+}

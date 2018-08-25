@@ -5,6 +5,7 @@ import axios from 'axios';
 import Navbar from '../components/Navbar';
 import ContentPanel from '../components/ContentPanel';
 import LoginModal from '../components/LoginModal';
+import Sidebar from '../components/Sidebar';
 
 const defaultContentPanel = {
   pointClusterPercentageThreshold: 0.003,
@@ -156,28 +157,34 @@ class MainContent extends React.Component {
           this.setState({ loginModalShowing: true });
         }}/>
 
-        {this.state.loginModalShowing
-          ? <LoginModal onModalClose={() => { this.setState({ loginModalShowing: false }); }} />
-          : null}
+        <Sidebar>
+        </Sidebar>
 
-        {/* @TODO: chart with configurable tools */}
-        {/* <GridLayout className="layout" layout={layout} cols={12} rowHeight={30} width={1200}> */}
-          {this.state.contentPanels.map((panel, i) => {
-            return (
-              <ContentPanel {...panel}
-                onUpdate={this.handleContentPanelUpdate.bind(this, i)}
-                onPriceChange={this.handlePriceChange.bind(this, i)}
-                onDelete={this.handleContentPanelDelete.bind(this, i)}
-                onAlert={this.handleAlert.bind(this, i)}
-                key={i}
-              />
-            );
-          })}
-        {/* </GridLayout> */}
+        <div className='content'>
+          {this.state.loginModalShowing
+            ? <LoginModal onModalClose={() => { this.setState({ loginModalShowing: false }); }} />
+            : null}
 
-        <div className='add-content-panel' onClick={this.addContentPanel}>
-          <i className='fa fa-plus'></i>
-          <span>Create Panel</span>
+          {/* @TODO: chart with configurable tools */}
+          {/* <GridLayout className="layout" layout={layout} cols={12} rowHeight={30} width={1200}> */}
+            {this.state.contentPanels.map((panel, i) => {
+              return (
+                <ContentPanel {...panel}
+                  onUpdate={this.handleContentPanelUpdate.bind(this, i)}
+                  onPriceChange={this.handlePriceChange.bind(this, i)}
+                  onDelete={this.handleContentPanelDelete.bind(this, i)}
+                  onAlert={this.handleAlert.bind(this, i)}
+                  key={i}
+                />
+              );
+            })}
+          {/* </GridLayout> */}
+
+          <div className='add-content-panel' onClick={this.addContentPanel}>
+            <i className='fa fa-plus'></i>
+            <span>Create Panel</span>
+          </div>
+
         </div>
         
       </main>

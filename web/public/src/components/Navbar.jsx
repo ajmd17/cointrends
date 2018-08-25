@@ -8,14 +8,16 @@ class Navbar extends React.Component {
   render() {
     return (
       <nav className='navbar'>
-        <h1>CoinTrends</h1>
-        <span style={{ float: 'right' }}>
-          <button className='btn primary' onClick={this.props.onLoginClick}>
-            <i className={`fa fa-user`}></i>
-            &nbsp;
-            Login
-          </button>
-        </span>
+        <div className='nav-content'>
+          <h1>CoinTrends</h1>
+          <span style={{ float: 'right' }}>
+            <button className='btn primary' onClick={this.props.onLoginClick}>
+              <i className={`fa fa-user`}></i>
+              &nbsp;
+              Login
+            </button>
+          </span>
+        </div>
       </nav>
     );
   }
