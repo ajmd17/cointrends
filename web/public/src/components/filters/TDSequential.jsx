@@ -33,6 +33,9 @@ class CountArrow extends React.Component {
             ? yScale(d.high) - 5
             : yScale(d.low) + 5;
 
+          ctx.font = '15px Arial';
+          const text = this.props.count.toString();
+
           const width = 10;
           const height = 5;
           ctx.beginPath();
@@ -42,16 +45,15 @@ class CountArrow extends React.Component {
             ctx.moveTo(x - (width / 2), y - height);
             ctx.lineTo(x + (width / 2), y - height);
             ctx.lineTo(x, y);
+            ctx.fillText(text, x - (ctx.measureText(text).width / 2), y - height - 15);
           } else if (this.props.direction == 'up') {
             ctx.fillStyle = '#00AA00';
             ctx.moveTo(x - (width / 2), y + height);
             ctx.lineTo(x + (width / 2), y + height);
             ctx.lineTo(x, y);
+            ctx.fillText(text, x - (ctx.measureText(text).width / 2), y + height + 15);
           }
           ctx.fill();
-          ctx.font = '15px Arial';
-         // const text = this.props.count.toString();
-         // ctx.fillText(text, x - (ctx.measureText(text).width / 2), y + height + 15);
         });
       });
     });
@@ -81,12 +83,38 @@ class CountArrow extends React.Component {
 
 class TDSequential extends React.Component {
   static propTypes = {
+    //tdSequential: React.PropTypes.array.isRequired
   };
 
   render() {
     return (
       <div>
-        {this.props.tdSequential.buyCounts.map(({ obj, count }, index) => {
+        {/* {this.props.tdSequential.map((obj, index) => {
+          if (obj.buySetup) {
+            
+            return (
+              <CountArrow direction='up' object={obj.obj} count={0} key={index} />
+            );
+          } else if (obj.sellSetup) {
+
+            return (
+              <CountArrow direction='down' object={obj.obj} count={0} key={index} />
+            );
+          }
+        })} */}
+        {this.props.tdSequential.map((obj, index) => {
+          return (
+            <div key={index}>
+              {obj.sellCountdown && obj.sellCountdown < 10
+                ? <CountArrow direction='up' object={obj.obj} count={obj.sellCountdown} />
+                : null}
+              {obj.buyCountdown && obj.buyCountdown < 10
+                ? <CountArrow direction='down' object={obj.obj} count={obj.buyCountdown} />
+                : null}
+            </div>
+          );
+        })}
+        {/* {this.props.tdSequential.buyCounts.map(({ obj, count }, index) => {
           return (
             <CountArrow direction='up' object={obj} count={count} key={index} />
           );
@@ -95,7 +123,7 @@ class TDSequential extends React.Component {
           return (
             <CountArrow direction='down' object={obj} count={count} key={index} />
           );
-        })}
+        })} */}
       </div>
     );
   }

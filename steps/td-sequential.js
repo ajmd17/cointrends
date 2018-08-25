@@ -1,4 +1,5 @@
 const Step = require('../step');
+const tdSequential = require('tdsequential');
 
 class TDSequential extends Step {
   constructor() {
@@ -11,130 +12,89 @@ class TDSequential extends Step {
   }
 
   execute(data) {
-    let bSetupCounter = 0;
 
-    let TDSL = 0;
-    let TDSS = 0;
+    let objs = [];
 
-    let buySetup = 0;
-    let sellSetup = 0;
-    let buyCountdown = 0;
-    let sellCountdown = 0;
+    const sellCountdown = (i) => {
+      if (i < 4) return 0;
+      if (data[i].close > data[i - 4].close) {
+        return sellCountdown(i - 1) + 1;
+      } else {
+        return 0;
+      }
+    };
 
-    const lows = [];
-    const highs = [];
-
-    let buyCounts = [];
-    let sellCounts = [];
-
-    let bar8;
+    const buyCountdown = (i) => {
+      if (i < 4) return 0;
+      if (data[i].close < data[i - 4].close) {
+        return buyCountdown(i - 1) + 1;
+      } else {
+        return 0;
+      }
+    };
 
     for (let i = 0; i < data.length; i++) {
-      //if (i < 9) continue;
-      if (i < 5) continue;
-      // if (bSetupCounter < 9) {
-      //   if (bSetupCounter == 0 && data[i].close < data[i + 4].close && data[i + 1].close > data[i + 5].close) {
-      //     bSetupCounter++;
+      objs.push({ timestamp: data[i].timestamp, sellCountdown: sellCountdown(i), buyCountdown: buyCountdown(i) });
+    }
 
-      //   }
-      // }
 
-      let bearishFlip;
-      let bullishFlip;
-      
+    return objs;
+    return tdSequential(data).map((obj, i) => Object.assign(obj, { timestamp: data[i].timestamp }));
 
-      if (data[i].close < data[i - 4].close && data[i - 1].close > data[i - 5].close) {
-        bearishFlip = 1;
-        bullishFlip = 0;
-      } else if (data[i].close > data[i - 4].close && data[i - 1].close < data[i - 5].close) {
-        bullishFlip = 1;
-        bearishFlip = 0;
+    let bullishFlip = false;
+    let bearishFlip = false;
+    let buySetup = false;
+    let sellSetup = false;
+
+    let buyCounter = 0;
+    let sellCounter = 0;
+
+    for (let i = 0; i < data.length; i++) {
+      if (i < 5) {
+        continue;
       }
 
-      if (data[i].close < data[i - 4].close && bearishFlip) {
-        TDSL++;
-        TDSS = 0;
-      } else if (data[i].close > data[i - 4].close && bullishFlip) {
-        TDSS++;
-        TDSL = 0;
+      if (buyCounter == 0 && data[i].close < data[i - 4].close && data[i - 1] > data[i - 5].close) {
+        bearishFlip = true;
+        bullishFlip = false;
+      } else if (sellCounter == 0 && data[i].close > data[i - 4].close && data[i - 1].close < data[i - 5].close) {
+        bullishFlip = true;
+        bearishFlip = false;
       }
 
-      // console.log('TDSL = ', TDSL);
-
-      // LOWS
-
-      if (TDSL > 0 && TDSL < 10) {
-        lows.push(data[i].low);
+      if (bearishFlip && data[i].close < data[i - 4].close) {
+        buyCounter++;
+      } else {
+        // cancel setup
+        buyCounter = 0;
+        sellCounter = 0;
       }
 
-      if (TDSL == 9) {
-        let L = (data[i].low < data[i - 3].low && data[i].low < data[i - 2].low) || (data[i - 1].low < data[i - 2].low && data[i - 1].low < data[i - 3].low);
-
-        bearishFlip = 0;
-        TDSL = 0;
-        buySetup = 1;
-
-        if (L) {
-          // arrow up
-        }
+      if (buyCounter == 9) {
+        buySetup = true;
+        sellSetup = false;
+        buyCounter = 0;
+        objs.push({ timestamp: data[i].timestamp, buySetup, sellSetup });
       }
 
-      // HIGHS
-      if (TDSS > 0 && TDSS < 10) {
-        highs.push(data[i].high);
+      if (bullishFlip && data[i].close > data[i - 4].close) {
+        sellCounter++;
+      } else {
+        // cancel setup
+        buyCounter = 0;
+        sellCounter = 0;
       }
 
-      if (TDSS == 9) {
-        let S = (data[i].high > data[i - 2].high && data[i].high > data[i - 3].high) || (data[i - 1].high > data[i - 3].high && data[i - 1].high > data[i - 2].high);
-
-        bullishFlip = 0;
-        TDSS = 0;
-        sellSetup = 1;
-
-        if (S) {
-          // arrow down
-        }
-      }
-
-      if (buySetup) {
-        if (data[i].close <= data[i - 2].low) {
-          buyCountdown++;
-          // buycountdown
-          buyCounts.push({ timestamp: data[i].timestamp, count: buyCountdown });
-        }
-
-        if (buyCountdown == 8) {
-          bar8 = i;
-        } else if (buyCountdown == 13) {
-          if (data[i].low <= data[bar8].close) {
-            // draw arrow up
-          }
-          buySetup = 0;
-          buyCountdown = 0;
-        }
-      } else if (sellSetup) {
-        if (data[i].close >= data[i - 2].high) {
-          sellCountdown++;
-          // sellcountdown
-          sellCounts.push({ timestamp: data[i].timestamp, count: sellCountdown });
-        }
-
-        if (sellCountdown == 8) {
-          bar8 = i;
-        } else if (sellCountdown == 13) {
-          if (data[i].high >= data[bar8].close) {
-            // draw arrow down
-          }
-          sellSetup = 0;
-          sellCountdown = 0;
-        }
+      if (sellCounter == 9) {
+        sellSetup = true;
+        buySetup = false;
+        sellCounter = 0;
+        objs.push({ timestamp: data[i].timestamp, buySetup, sellSetup });
       }
 
     }
 
-    console.log('highs = ', highs.length)
-    console.log('lows = ', lows.length)
-    return { buyCounts, sellCounts };
+    return objs;
 
   }
 }

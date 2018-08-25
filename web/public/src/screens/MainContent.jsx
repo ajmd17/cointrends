@@ -10,7 +10,7 @@ const defaultContentPanel = {
   pointClusterPercentageThreshold: 0.003,
   supportAndResistanceDetail: 20,
   timespan: '15m',
-  dateRange: [Date.now() - (60000 * 60 * 24 * 7 * 4) /* 4 weeks */, null],
+  dateRange: [Date.now() - (60000 * 60 * 24 * 7 * 16) /* 16 weeks */, null],
   showingAdvancedOptions: false,
   showingMovingAverages: false,
   showingChart: true

@@ -17,7 +17,7 @@ import TDSequential from './filters/TDSequential';
 const filters = {
   'support_resistance': (levels, data) => <SupportResistance levels={levels} />,
   //'fractals': (fractals, data) => <WilliamsFractals fractals={{ up: fractals.up.map(({ timestamp }) => data.find(x => x.timestamp == timestamp)), down: fractals.down.map(({ timestamp }) => data.find(x => x.timestamp == timestamp)) }} />,
-  'td_sequential': (tdSequential, data) => <TDSequential tdSequential={{ buyCounts: tdSequential.buyCounts.map(({ timestamp, count }) => ({ obj: data.find(x => x.timestamp == timestamp), count })), sellCounts: tdSequential.sellCounts.map(({ timestamp, count }) => ({ obj: data.find(x => x.timestamp == timestamp), count })) }} />
+  'td_sequential': (tdSequential, data) => <TDSequential  tdSequential={tdSequential.map((seq) => ({ ...seq, obj: data.find(x => x.timestamp == seq.timestamp) }))} />  //<TDSequential tdSequential={{ buyCounts: tdSequential.buyCounts.map(({ timestamp, count }) => ({ obj: data.find(x => x.timestamp == timestamp), count })), sellCounts: tdSequential.sellCounts.map(({ timestamp, count }) => ({ obj: data.find(x => x.timestamp == timestamp), count })) }} />
 };
 
 class ContentPanel extends React.Component {
