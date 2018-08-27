@@ -5,7 +5,7 @@ const parseDuration = require('parse-duration');
 
 const Monitor = require('./monitor');
 const Pipeline = require('./pipeline');
-const { Fractals, SupportResistance, TDSequential } = require('./steps');
+const { Fractals, SupportResistance, Trendlines, TDSequential } = require('./steps');
 
 const exchanges = require('./exchanges');
 
@@ -87,7 +87,7 @@ class ExchangeMonitor extends Monitor {
           });
         }
       }
-    }, [Fractals, SupportResistance, TDSequential]);
+    }, [Fractals, SupportResistance, Trendlines, TDSequential]);
 
     this.exchange = exchange;
     this.symbol = symbol;

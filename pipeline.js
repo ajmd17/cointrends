@@ -6,6 +6,7 @@ class Pipeline {
   constructor(steps=[]) {
     this.steps = [];
     this.dataStore = {};
+    this.lastTimestamp = null;
 
     for (let step of steps) {
       if (step instanceof Step) {
@@ -48,23 +49,27 @@ class Pipeline {
       let step = this.steps[i].step;
 
       console.log(' - Run filter ' + key);
-      
-      /* filter the current data using the pipe */
-      let filterResult = step.filter(data.values, data._filters);
 
-      /* get new data to be stored for the pipe */
-      let pipeData = step.execute(data.values, data._filters);
+      if (step.isRealtime || data.values[data.values.length - 1].timestamp != this.lastTimestamp) {
+        /* filter the current data using the pipe */
+        let filterResult = step.filter(data.values, data._filters);
+
+        /* get new data to be stored for the pipe */
+        let pipeData = step.execute(data.values, data._filters);
 
 
-      if (filterResult) {
-        data.values = filterResult;
-      }
+        if (filterResult) {
+          data.values = filterResult;
+        }
 
-      if (pipeData) {
-        data['_filters'][key] = pipeData;
-        this.dataStore[key] = pipeData;
+        if (pipeData) {
+          data['_filters'][key] = pipeData;
+          this.dataStore[key] = pipeData;
+        }
       }
     }
+
+    this.lastTimestamp = data.values[data.values.length - 1].timestamp;
 
     return data;
   }

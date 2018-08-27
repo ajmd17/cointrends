@@ -12,6 +12,7 @@
     "moment": "^2.22.2",
     "mongoose": "^5.2.7",
     "parse-duration": "^0.1.1",
+    "regression": "^2.0.1",
     "request": "^2.87.0",
     "tdsequential": "^1.0.14"
   },
