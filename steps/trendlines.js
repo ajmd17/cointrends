@@ -12,7 +12,7 @@ function percentDiff(a, b) {
 }
 
 class Trendlines extends Step {
-  constructor(threshold=0.005) {
+  constructor(threshold=0.002) {
     super({
       requires: ['fractals'],
       isRealtime: false
@@ -25,7 +25,6 @@ class Trendlines extends Step {
   }
 
   execute(data, { fractals }) {
-
     //data = data.slice(Math.max(data.length - 250, 0), data.length);
     let lines = [];
 
@@ -44,11 +43,11 @@ class Trendlines extends Step {
   
         if (direction == 'up') {
           if (dataItem.close < prediction && Math.abs(prediction - dataItem.close) > 40/* @TODO: some kind of auto-adjust for Timeframe + asset*/) {
-            result.push(Object.assign({}, prediction, dataItem));
+            result.push(Object.assign({ timestamp: dataItem.timestamp }, prediction, dataItem));
           }
         } else {
           if (dataItem.close > prediction && Math.abs(dataItem.close - prediction) > 40/* @TODO: some kind of auto-adjust for Timeframe + asset*/) {
-            result.push(Object.assign({}, prediction, dataItem));
+            result.push(Object.assign({ timestamp: dataItem.timestamp }, prediction, dataItem));
           }
         }
       }
@@ -56,17 +55,19 @@ class Trendlines extends Step {
       return result;
     };
 
+    let fractalData = {};
+
     Object.keys(fractals).forEach((key) => {
-      let f = fractals[key].map(({ index }) => data[index]);
+      let f = fractalData[key] = fractals[key].map(({ index }) => data[index]);
       
       f.forEach((fractal, index) => {
         let inRange = [];
         let pt = key == 'up' ? fractal.low : fractal.high;
 
         for (let i = 1; i <= 10; i++) {
-          if (index + i >= fractals[key].length) return;
+          if (index + i >= f.length) return;
 
-          let nextFractal = fractals[key][index + i];
+          let nextFractal = f[index + i];
           let bPt = key == 'up' ? nextFractal.low : nextFractal.high;
           let data = [[fractal.timestamp/1000000000, pt], [nextFractal.timestamp/1000000000, bPt]];
           //console.log('data = ', data);
@@ -83,6 +84,8 @@ class Trendlines extends Step {
               direction,
               strength: 0,
               passThroughs: [],
+              numLinesAbove: 0,
+              numLinesBelow: 0,
               key,
               index,
               lastIndex: index + i,
@@ -93,46 +96,94 @@ class Trendlines extends Step {
       });
     });
 
-    const allFractals = fractals.up.map(x => (Object.assign({ direction: 'up' }, x)))
-      .concat(fractals.down.map(x => Object.assign({ direction: 'down' }, x)));
+    const allFractals = fractalData.up.map(x => (Object.assign({ direction: 'up' }, x)))
+      .concat(fractalData.down.map(x => Object.assign({ direction: 'down' }, x)));
     allFractals.sort((a, b) => a.timestamp - b.timestamp);
+
+    console.log('lines.length = ', lines.length);
 
     lines.forEach((line) => {
       const { regr, key: mainKey } = line;
       const otherKey = mainKey == 'up' ? 'down' : 'up';
 
       
-      let index = allFractals.findIndex(x => x.timestamp == line.b.timestamp);
+      let index = fractals[mainKey].findIndex(x => x.timestamp == line.b.timestamp);
       let lastFoundIndex = index;
 
-      for (let i = index + 1; i < allFractals.length; i++) {
+      console.assert(index != -1);
+
+      for (let i = index + 1; i < fractalData[mainKey].length; i++) {
         //if (i - lastFoundIndex > 5) break;
-        let key = allFractals[i].direction == 'up' ? 'low' : 'high';
-        [key].forEach((attr) => {
-          
-          let xValue = allFractals[i].timestamp/1000000000;
-          let yValue = allFractals[i][attr];
-  
-          let prediction = regr.predict(xValue);
-          let diff = Math.abs(prediction[1] - yValue);
-          let pdiff = percentDiff(prediction[1], yValue);
+        let key = fractalData[mainKey][i].direction == 'up' ? 'low' : 'high';
 
-          if (pdiff <= this.threshold) {
-            lastFoundIndex = i;
-            line.contactPoints.push(allFractals[i]);
-            line.b = allFractals[i];
-            line.bPt = allFractals[i][attr];
-            line.lastIndex = i;
+        let xValue = fractalData[mainKey][i].timestamp/1000000000;
+        let yValue = fractalData[mainKey][i][key];
 
-            let pointStrength = pdiff / diffThreshold;
+        let prediction = regr.predict(xValue);
+        let diff = Math.abs(prediction[1] - yValue);
+        let pdiff = percentDiff(prediction[1], yValue);
 
-            line.strength += pointStrength;
-          }
-        });
+        if (pdiff <= this.threshold) {
+          lastFoundIndex = i;
+          line.contactPoints.push(fractalData[mainKey][i]);
+          line.b = fractalData[mainKey][i];
+          line.bPt = fractalData[mainKey][i][key];
+          line.lastIndex = i;
+
+          let pointStrength = pdiff / this.threshold;
+
+          line.strength += pointStrength;
+        } else {
+          //return;
+        }
 
         line.passThroughs = getPassthroughs(line.a, line.b, line.direction, line.regr);
       }
     });
+
+    let blacklist = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      if (blacklist.indexOf(i) != -1) continue;
+      
+      let line = lines[i];
+
+      for (let j = 0; j < lines.length; j++) {
+        if (i == j) continue;
+        
+        // if (blacklist.indexOf(j) != -1) continue;
+        let otherLine = lines[j];
+        
+        if (line.direction != otherLine.direction) continue;
+
+        // let dupCount = 0;
+        // for (let k = 0; k < line.contactPoints.length; k++) {
+        //   if (otherLine.contactPoints.findIndex(x => x.timestamp == line.contactPoints[k].timestamp) != -1) {
+        //     dupCount++;
+        //   }
+
+        //   if (dupCount >= 2) {
+        //     blacklist.push(j);
+        //     break;
+        //   }
+        // }
+
+        // check for overlap
+        // one has to completely overlap the other
+        if ((line.a.timestamp >= otherLine.a.timestamp && line.b.timestamp <= otherLine.b.timestamp)
+            || (line.a.timestamp <= otherLine.a.timestamp && line.b.timestamp >= otherLine.b.timestamp)) {
+          let avg1 = (line.pt + line.bPt) / 2;
+          let avg2 = (otherLine.pt + otherLine.bPt) / 2;
+          if (avg1 < avg2) {
+            line.numLinesAbove++;
+          } else if (avg1 > avg2) {
+            line.numLinesBelow++;
+          }
+        }
+      }
+    }
+
+    // lines = lines.filter((x, i) => blacklist.indexOf(i) == -1);
 
     let linesByPoint = {};
     let newLines = [];
@@ -152,7 +203,7 @@ class Trendlines extends Step {
     newLines.sort((a, b) => a.timestamp - b.timestamp);
     lines = newLines;
 
-    lines = lines.filter(line => line.contactPoints.length > 2 && line.passThroughs.length < 3/*&& line.strength >= 0.6*/);
+    lines = lines.filter(line => (line.numLinesAbove == 0 || line.numLinesBelow == 0) && line.contactPoints.length > 2/*&& line.passThroughs.length < 3*//*&& line.strength >= 0.6*/);
 
     return lines;
   }

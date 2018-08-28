@@ -12,12 +12,14 @@ import AlertOptions from './AlertOptions';
 import LoadingMessage from './LoadingMessage';
 import WilliamsFractals from './filters/WilliamsFractals';
 import SupportResistance from './filters/SupportResistance';
+import Trendlines from './filters/Trendlines';
 import TDSequential from './filters/TDSequential';
 
 const filters = {
   'support_resistance': (levels, data) => <SupportResistance levels={levels} />,
-  //'fractals': (fractals, data) => <WilliamsFractals fractals={{ up: fractals.up.map(({ timestamp }) => data.find(x => x.timestamp == timestamp)), down: fractals.down.map(({ timestamp }) => data.find(x => x.timestamp == timestamp)) }} />,
-  'td_sequential': (tdSequential, data) => <TDSequential  tdSequential={tdSequential.map((seq) => ({ ...seq, obj: data.find(x => x.timestamp == seq.timestamp) }))} />  //<TDSequential tdSequential={{ buyCounts: tdSequential.buyCounts.map(({ timestamp, count }) => ({ obj: data.find(x => x.timestamp == timestamp), count })), sellCounts: tdSequential.sellCounts.map(({ timestamp, count }) => ({ obj: data.find(x => x.timestamp == timestamp), count })) }} />
+  'fractals': (fractals, data) => <WilliamsFractals fractals={{ up: fractals.up.map(({ timestamp }) => data.find(x => x.timestamp == timestamp)), down: fractals.down.map(({ timestamp }) => data.find(x => x.timestamp == timestamp)) }} />,
+  'trendlines': (trendlines, data, moreProps) => <Trendlines trendlines={trendlines} data={data} {...moreProps} />,
+  //'td_sequential': (tdSequential, data) => <TDSequential  tdSequential={tdSequential.map((seq) => ({ ...seq, obj: data.find(x => x.timestamp == seq.timestamp) }))} />  //<TDSequential tdSequential={{ buyCounts: tdSequential.buyCounts.map(({ timestamp, count }) => ({ obj: data.find(x => x.timestamp == timestamp), count })), sellCounts: tdSequential.sellCounts.map(({ timestamp, count }) => ({ obj: data.find(x => x.timestamp == timestamp), count })) }} />
 };
 
 class ContentPanel extends React.Component {
@@ -381,7 +383,7 @@ class ContentPanel extends React.Component {
         <Accordion title='Chart' isOpened={this.props.showingChart} onClick={(showingChart) => this.props.onUpdate({ showingChart })}>
           {this.state.data == null
             ? <LoadingMessage />
-            : <Chart type='hybrid' data={this.state.data} renderFilters={(data) => {
+            : <Chart type='hybrid' data={this.state.data} renderFilters={(data, moreProps) => {
                 if (this.state.filters == null || data.length == 0) return null;
 
                 const keys = Object.keys(this.state.filters);
@@ -393,7 +395,7 @@ class ContentPanel extends React.Component {
                     {keys.map((key, index) => {
                       if (filters[key] == null) return null;
                       return (
-                        filters[key](this.state.filters[key], data)
+                        filters[key](this.state.filters[key], data, moreProps)
                       );
                     })}
                   </div>
