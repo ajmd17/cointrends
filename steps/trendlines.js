@@ -64,7 +64,7 @@ class Trendlines extends Step {
         let inRange = [];
         let pt = key == 'up' ? fractal.low : fractal.high;
 
-        for (let i = 1; i <= 10; i++) {
+        for (let i = 1; i <= 5; i++) {
           if (index + i >= f.length) return;
 
           let nextFractal = f[index + i];
@@ -151,39 +151,39 @@ class Trendlines extends Step {
       for (let j = 0; j < lines.length; j++) {
         if (i == j) continue;
         
-        // if (blacklist.indexOf(j) != -1) continue;
+        if (blacklist.indexOf(j) != -1) continue;
         let otherLine = lines[j];
         
         if (line.direction != otherLine.direction) continue;
 
-        // let dupCount = 0;
-        // for (let k = 0; k < line.contactPoints.length; k++) {
-        //   if (otherLine.contactPoints.findIndex(x => x.timestamp == line.contactPoints[k].timestamp) != -1) {
-        //     dupCount++;
-        //   }
+        let dupCount = 0;
+        for (let k = 0; k < line.contactPoints.length; k++) {
+          if (otherLine.contactPoints.findIndex(x => x.timestamp == line.contactPoints[k].timestamp) != -1) {
+            dupCount++;
+          }
 
-        //   if (dupCount >= 2) {
-        //     blacklist.push(j);
-        //     break;
-        //   }
-        // }
+          if (dupCount >= 2) {
+            blacklist.push(j);
+            break;
+          }
+        }
 
         // check for overlap
         // one has to completely overlap the other
-        if ((line.a.timestamp >= otherLine.a.timestamp && line.b.timestamp <= otherLine.b.timestamp)
-            || (line.a.timestamp <= otherLine.a.timestamp && line.b.timestamp >= otherLine.b.timestamp)) {
-          let avg1 = (line.pt + line.bPt) / 2;
-          let avg2 = (otherLine.pt + otherLine.bPt) / 2;
-          if (avg1 < avg2) {
-            line.numLinesAbove++;
-          } else if (avg1 > avg2) {
-            line.numLinesBelow++;
-          }
-        }
+        // if ((line.a.timestamp >= otherLine.a.timestamp && line.b.timestamp <= otherLine.b.timestamp)
+        //     || (line.a.timestamp <= otherLine.a.timestamp && line.b.timestamp >= otherLine.b.timestamp)) {
+        //   let avg1 = (line.pt + line.bPt) / 2;
+        //   let avg2 = (otherLine.pt + otherLine.bPt) / 2;
+        //   if (avg1 < avg2) {
+        //     line.numLinesAbove++;
+        //   } else if (avg1 > avg2) {
+        //     line.numLinesBelow++;
+        //   }
+        // }
       }
     }
 
-    // lines = lines.filter((x, i) => blacklist.indexOf(i) == -1);
+    lines = lines.filter((x, i) => blacklist.indexOf(i) == -1);
 
     let linesByPoint = {};
     let newLines = [];
@@ -203,7 +203,7 @@ class Trendlines extends Step {
     newLines.sort((a, b) => a.timestamp - b.timestamp);
     lines = newLines;
 
-    lines = lines.filter(line => (line.numLinesAbove == 0 || line.numLinesBelow == 0) && line.contactPoints.length > 2/*&& line.passThroughs.length < 3*//*&& line.strength >= 0.6*/);
+    lines = lines.filter(line =>/* (line.numLinesAbove == 0 || line.numLinesBelow == 0) &&*/ line.contactPoints.length >= 3 && line.passThroughs.length < 3/*&& line.strength >= 0.6*/);
 
     return lines;
   }
