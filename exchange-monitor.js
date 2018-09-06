@@ -87,7 +87,7 @@ class ExchangeMonitor extends Monitor {
           });
         }
       }
-    }, [Fractals, SupportResistance, Trendlines, TDSequential]);
+    }, [Fractals, SupportResistance, /*Trendlines,*/ TDSequential]);
 
     this.exchange = exchange;
     this.symbol = symbol;

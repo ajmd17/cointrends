@@ -75,7 +75,9 @@ class Pipeline {
       }
     }
 
-    this.lastTimestamp = data.values[data.values.length - 1].timestamp;
+    if (data.values.length != 0) {
+      this.lastTimestamp = data.values[data.values.length - 1].timestamp;
+    }
 
     return data;
   }
