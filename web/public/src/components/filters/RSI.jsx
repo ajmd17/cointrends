@@ -1,16 +1,23 @@
 import React from 'react';
 import { format } from "d3-format";
 
-import rsi from "react-stockcharts/lib/indicator/rsi";
-import { CandlestickSeries, BarSeries, LineSeries, AreaSeries, RSISeries } from "react-stockcharts/lib/series";
+import { Chart } from "react-stockcharts";
+import { RSISeries } from "react-stockcharts/lib/series";
+import { RSITooltip } from "react-stockcharts/lib/tooltip";
+import { MouseCoordinateX, MouseCoordinateY, CurrentCoordinate } from "react-stockcharts/lib/coordinates";
+import { XAxis, YAxis } from "react-stockcharts/lib/axes";
+import { rsi } from "react-stockcharts/lib/indicator";
 
-class SupportResistance extends React.Component {
+class RSI extends React.Component {
   static propTypes = {
-    levels: React.PropTypes.arrayOf(React.PropTypes.number).isRequired
+    rsi: React.PropTypes.arrayOf(React.PropTypes.shape({
+      timestamp: React.PropTypes.number.isRequired,
+      rsi: React.PropTypes.number.isRequired
+    })).isRequired
   };
 
   render() {
-    
+    return (<div></div>);
 		var rsiCalculator = rsi()
       .windowSize(14)
       .merge((d, c) => {d.rsi = c})
@@ -25,7 +32,7 @@ class SupportResistance extends React.Component {
         <MouseCoordinateY
           at="right"
           orient="right"
-          displayFormat={d3.format(".2f")} />
+          displayFormat={format(".2f")} />
 
         <RSISeries calculator={rsiCalculator} />
 
@@ -35,4 +42,4 @@ class SupportResistance extends React.Component {
   }
 }
 
-export default SupportResistance;
+export default RSI;

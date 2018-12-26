@@ -41,8 +41,6 @@ class Monitor {
       startDate.setSeconds(0, 0);
       endDate.setSeconds(0, 0);
 
-      console.log('Fetch local ' + startDate.toISOString() + '  --  ' + endDate.toISOString());
-
       startDate = startDate.valueOf();
       endDate = endDate.valueOf();
 

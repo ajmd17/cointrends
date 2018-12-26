@@ -5,9 +5,13 @@ const parseDuration = require('parse-duration');
 
 const Monitor = require('./monitor');
 const Pipeline = require('./pipeline');
-const { Fractals, SupportResistance, Trendlines, TDSequential } = require('./steps');
+const steps = require('./steps');
 
 const exchanges = require('./exchanges');
+
+function isStepEnabled(key) {
+  return key == 'RSI'; /** @TODO */
+}
 
 class ExchangeMonitor extends Monitor {
   constructor(exchange, symbol, startDate) {
@@ -87,7 +91,7 @@ class ExchangeMonitor extends Monitor {
           });
         }
       }
-    }, [Fractals, SupportResistance, /*Trendlines,*/ TDSequential]);
+    }, Object.keys(steps).filter((key) => isStepEnabled(key)).map((key) => steps[key]));
 
     this.exchange = exchange;
     this.symbol = symbol;

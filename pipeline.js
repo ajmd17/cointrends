@@ -47,13 +47,19 @@ class Pipeline {
     // 1d will be in chunks of 1wk
     data['_filters'] = data['_filters'] || {};
 
+    let isOpen = data.values.length == 0 || data.values[data.values.length - 1].timestamp != this.lastTimestamp;
+
+    if (isOpen) {
+      console.log('OPEN', data.values.length != 0 ? data.values[data.values.length - 1].timestamp : null, this.lastTimestamp);
+    }
+
     for (let i = 0; i < this.steps.length; i++) {
       let key = this.steps[i].key;
       let step = this.steps[i].step;
 
       console.log(' - Run filter ' + key);
       try {
-        if (step.isRealtime || data.values[data.values.length - 1].timestamp != this.lastTimestamp) {
+        if (step.isRealtime || isOpen) {
           /* filter the current data using the pipe */
           let filterResult = step.filter(data.values, data._filters);
 
@@ -77,6 +83,7 @@ class Pipeline {
 
     if (data.values.length != 0) {
       this.lastTimestamp = data.values[data.values.length - 1].timestamp;
+      console.log('lastTimestamp: ', this.lastTimestamp);
     }
 
     return data;

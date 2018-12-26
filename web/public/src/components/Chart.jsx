@@ -31,9 +31,12 @@ import {
 	StochasticTooltip,
 	GroupTooltip,
 } from "react-stockcharts/lib/tooltip";
-import { ema, stochasticOscillator, bollingerBand } from "react-stockcharts/lib/indicator";
+import { rsi, ema, stochasticOscillator, bollingerBand } from "react-stockcharts/lib/indicator";
 import { fitWidth } from "react-stockcharts/lib/helper";
 import { last } from "react-stockcharts/lib/utils";
+
+import { RSISeries } from "react-stockcharts/lib/series";
+import { RSITooltip } from "react-stockcharts/lib/tooltip";
 
 class CandleStickChartWithDarkTheme extends React.Component {
 	constructor(props) {
@@ -72,8 +75,25 @@ class CandleStickChartWithDarkTheme extends React.Component {
 		const yGrid = showGrid ? { innerTickSize: -1 * gridWidth, tickStrokeOpacity: 0.2 } : {};
 		const xGrid = showGrid ? { innerTickSize: -1 * gridHeight, tickStrokeOpacity: 0.2 } : {};
 
+		var ema20 = ema()
+			.options({ windowSize: 20 })
+			.merge((d, c) => {d.ema20 = c})
+			.accessor(d => d.ema20)
+			.stroke("#4682B4");
 
-		const calculatedData = initialData;
+		// var ema50 = ema()
+		// 	.options({ windowSize: 50 })
+		// 	.merge((d, c) => {d.ema50 = c})
+		// 	.accessor(d => d.ema50)
+		// 	.stroke("#4682B4");
+
+			
+		// var rsiCalculator = rsi()
+		// 	.options({ windowSize: 14 })
+		// 	.merge((d, c) => {d.rsi = c})
+		// 	.accessor(d => d.rsi);
+
+		const calculatedData = ema20(initialData);
 		const xScaleProvider = discontinuousTimeScaleProvider
 			.inputDateAccessor(d => d.date);
 		const {
@@ -86,6 +106,7 @@ class CandleStickChartWithDarkTheme extends React.Component {
 		const start = xAccessor(last(data));
 		const end = xAccessor(data[Math.max(0, data.length - 150)]);
 		const xExtents = [start, end];
+			
 
 		return (
 			<div className=''>
@@ -96,6 +117,7 @@ class CandleStickChartWithDarkTheme extends React.Component {
 					margin={margin}
 					type={type}
 					data={data}
+					calculator={[ema20, ema50]}
 					xScale={xScale}
 					xAccessor={xAccessor}
 					displayXAccessor={displayXAccessor}
@@ -114,6 +136,9 @@ class CandleStickChartWithDarkTheme extends React.Component {
 							orient="right"
 							displayFormat={format('.8f')} />
 
+						<LineSeries yAccessor={ema20.accessor()} stroke={ema20.stroke()}/>
+						{/* <LineSeries yAccessor={ema50.accessor()} stroke={ema50.stroke()}/> */}
+
 						<CandlestickSeries
 							stroke={d => d.close > d.open ? "#00B250" : "#B21D10"}
 							wickStroke={d => d.close > d.open ? "#00B250" : "#B21D10"}
@@ -127,14 +152,18 @@ class CandleStickChartWithDarkTheme extends React.Component {
 						<OHLCTooltip origin={[-40, -10]}/>
 					</Chart>
 					{/* <Chart id={2}
-						yExtents={d => d.volume}
-						height={100} origin={(w, h) => [0, h - 100]}
-					> *
-						<YAxis axisAt="left" orient="left" ticks={5} tickFormat={format(".2s")} tickStroke="#555555" />
-						<BarSeries
-							yAccessor={d => d.volume}
-							opacity={0.5}
-							fill={d => d.close > d.open ? "#8cd9c2" : "#e6b3be"} />
+						yExtents={rsiCalculator.domain()}
+						height={125} origin={(w, h) => [0, h - 250]}>
+						<XAxis axisAt="bottom" orient="bottom" showTicks={false} outerTickSize={0} />
+						<YAxis axisAt="right" orient="right" ticks={2} tickValues={rsiCalculator.tickValues()}/>
+						<MouseCoordinateY
+							at="right"
+							orient="right"
+							displayFormat={format(".2f")} />
+
+						<RSISeries calculator={rsiCalculator} />
+
+						<RSITooltip origin={[-38, 15]} calculator={rsiCalculator}/>
 					</Chart> */}
 					<CrossHairCursor stroke="#222222" />
 				</ChartCanvas>

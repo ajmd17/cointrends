@@ -10,7 +10,6 @@ class Fractals extends Step {
   }
 
   execute(data) {
-    console.log('[Fractals] data.length = ' + data.length);
     let results = {
       up: [],
       down: []
