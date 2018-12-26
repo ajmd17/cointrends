@@ -83,7 +83,6 @@ class Pipeline {
 
     if (data.values.length != 0) {
       this.lastTimestamp = data.values[data.values.length - 1].timestamp;
-      console.log('lastTimestamp: ', this.lastTimestamp);
     }
 
     return data;

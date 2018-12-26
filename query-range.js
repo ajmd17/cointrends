@@ -43,18 +43,23 @@ class QueryRange {
   }
 
   query(startTime, endTime, latest=false) {
+    console.log('[' + this.interval + '] query', { startTime, endTime, latest })
     startTime = Math.floor(Number(startTime) / this.intervalMs) * this.intervalMs;
-    endTime = (Math.floor(Number(endTime + ((latest && endTime + this.intervalMs >= Date.now()) ? this.intervalMs : 0)) / this.intervalMs) * this.intervalMs) //+ this.intervalMs;
-
+    endTime = Math.floor(Number(endTime) / this.intervalMs) * this.intervalMs;//(Math.floor(Number(endTime + ((latest && endTime + this.intervalMs >= Date.now()) ? this.intervalMs : 0)) / this.intervalMs) * this.intervalMs) //+ this.intervalMs;
     if (latest) {
-      //endTime += this.intervalMs;
-
-      if (this.data.length != 0) {
-        if (endTime >= Date.now()) {
-          this.data.pop();
-        }
-      }
+      endTime += this.intervalMs;
     }
+
+    // if (latest) {
+    //   //endTime += this.intervalMs;
+
+    //   if (this.data.length != 0) {
+    //     if (endTime >= Date.now()) {
+    //       this.data.pop();
+    //     }
+    //   }
+    // }
+
     // let spliceIndex = -1;
     // for (let i = this.data.length - 1; i >= 0; i--) {
     //   if (Date.now() - this.data[i].timestamp <= this.intervalMs) {
@@ -80,6 +85,10 @@ class QueryRange {
     return this._processData(sections, toProcess).then(() => {
       let newData = this.data.slice();
 
+      if (latest) {
+        newData.pop();
+      }
+
       sections.forEach(({ found, values }, index) => {
         if (found || values.length == 0) return;
 
@@ -89,7 +98,7 @@ class QueryRange {
           let foundIndex = findTimestampIndex(newData, value.timestamp);
 
           if (foundIndex !== -1) {
-            console.log(`Value ${value.timestamp} should not yet be in main array but was found at index ${foundIndex} (${newData.length - foundIndex})   (duration: ${this.interval})`);
+            //console.log(`Value ${value.timestamp} should not yet be in main array but was found at index ${foundIndex} (${newData.length - foundIndex})   (duration: ${this.interval})`);
             newData[foundIndex] = value;
           }
         });
@@ -197,6 +206,7 @@ class QueryRange {
   }
 
   _populateSections(startTime, endTime) {
+    console.log('[' + this.interval + '] _populateSections', { startTime, endTime })
     let sections = [];
     let dataCopy = this.data.slice();
 

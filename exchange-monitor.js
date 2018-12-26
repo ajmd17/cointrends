@@ -20,8 +20,7 @@ class ExchangeMonitor extends Monitor {
         console.assert(exchanges[this.exchange] != null, `exchange ${this.exchange} not found`);
         const { url, transform } = exchanges[this.exchange];
         let urlString = url({ symbol: this.symbol, interval, start, end });
-        console.log('urlString = ', urlString);
-    
+
         let duration = ((new Date(end).valueOf() - new Date(start).valueOf()) / 60000).toFixed(2);
         console.log('Fetch remote (' + parseDuration(interval) + ') - ' + duration + 'm range');
     
