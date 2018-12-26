@@ -35,7 +35,7 @@ class QueryRange {
     this.interval = interval;
     this.intervalMs = parseDuration(interval);
     this.fetchHandler = fetchHandler;
-    this.data = [];
+    this.data = []; /** @TODO convert to RangeMap format */
   }
 
   add(newData) {

@@ -4,7 +4,15 @@ class RangeMap {
     this._obj = {};
   }
 
-  get(startKey, endKey) {
+  get length() {
+    return Object.keys(this._obj).length;
+  }
+
+  get(startKey, endKey=null) {
+    if (endKey == null) {
+      return this._obj[startKey];
+    }
+
     let ary = new Array(endKey - startKey + 1);
 
     for (let i = 0; i < endKey - startKey + 1; i++) {
