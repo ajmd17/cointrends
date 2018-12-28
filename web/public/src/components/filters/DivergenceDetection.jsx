@@ -35,11 +35,17 @@ class Divergence extends React.Component {
 
           const x = xScale(xAccessor(d));
           const y = swing == 'high'
-            ? yScale(d.high) - 5
-            : yScale(d.low) + 5;
+            ? yScale(d.high)
+            : yScale(d.low);
 
           ctx.font = '12px Arial';
-          const text = this.props.divClass.toString();
+          const textValues = {
+            'BR': 'BearDiv',
+            'HBR': 'HiddenBearDiv',
+            'BL': 'BullDiv',
+            'HBL': 'HiddenBullDiv'
+          };
+          const text = textValues[this.props.divClass];
 
           const width = 10;
           const height = 5;
@@ -47,16 +53,16 @@ class Divergence extends React.Component {
 
           if (swing == 'high') {
             ctx.fillStyle = '#FF494A';
-            ctx.moveTo(x - (width / 2), y - height);
-            ctx.lineTo(x + (width / 2), y - height);
-            ctx.lineTo(x, y);
-            ctx.fillText(text, x - (ctx.measureText(text).width / 2), y - height - 15);
+            // ctx.moveTo(x - (width / 2), y - height);
+            // ctx.lineTo(x + (width / 2), y - height);
+            // ctx.lineTo(x, y);
+            ctx.fillText(text, x - (ctx.measureText(text).width / 2), y - 15);
           } else if (swing == 'low') {
             ctx.fillStyle = '#00B250';
-            ctx.moveTo(x - (width / 2), y + height);
-            ctx.lineTo(x + (width / 2), y + height);
-            ctx.lineTo(x, y);
-            ctx.fillText(text, x - (ctx.measureText(text).width / 2), y + height + 15);
+            // ctx.moveTo(x - (width / 2), y + height);
+            // ctx.lineTo(x + (width / 2), y + height);
+            // ctx.lineTo(x, y);
+            ctx.fillText(text, x - (ctx.measureText(text).width / 2), y + 15);
           }
           ctx.fill();
         });
@@ -109,15 +115,15 @@ class DivergenceDetection extends React.Component {
             <div key={`${obj1.timestamp}${obj2.timestamp}`}>
               <Divergence divClass={divClass} object={obj1} x={(obj2.timestamp + obj1.timestamp) / 2} />
               {/* draw trendline from a to b */}
-              <StraightLine stroke={divClass.endsWith('R') ? '#CC0000' : '#00CC00'}
+              {/* <StraightLine stroke={divClass.endsWith('R') ? '#CC0000' : '#00CC00'}
                 type='LINE'
                 x1Value={xScale(xAccessor(getData(obj2.timestamp)))}
                 x2Value={xScale(xAccessor(getData(obj1.timestamp)))}
-                y1Value={divClass.endsWith('R') ? obj2.high : obj2.low}
-                y2Value={divClass.endsWith('R') ? obj1.high : obj1.low}
+                y1Value={obj2.close}//divClass.endsWith('R') ? obj2.high : obj2.low}
+                y2Value={obj1.close}//divClass.endsWith('R') ? obj1.high : obj1.low}
                 strokeWidth={1}
                 strokeOpacity={1}
-              />
+              /> */}
             </div>
           );
         })}

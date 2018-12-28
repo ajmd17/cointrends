@@ -160,7 +160,13 @@ class CandleStickChartWithDarkTheme extends React.Component {
 
 						<OHLCTooltip origin={[-40, -10]}/>
 					</Chart>
-					{this.props.panels.map(([key, { accessor, render }], index) => {
+					{this.props.panels.map((obj, index) => {
+						if (obj == null) {
+							return null;
+						}
+
+						let [key, { accessor, render }] = obj;
+
 						return (
 							<Chart id={2 + index} height={50}
 								yExtents={[d => accessor(d)]}

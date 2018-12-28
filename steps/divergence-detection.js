@@ -28,7 +28,7 @@ class DivergenceDetection extends Step {
 
         let tempPoints = [];
 
-        for (let j = i - 1; j >= 0 && j >= (i - 1 - 5); j--) {
+        for (let j = i - 1; j >= 0 && j >= (i - 1 - 3); j--) {
           let point2 = swingPoints[j];
           let obj2 = data[point2.i1];
           let rsi2 = rsi[obj2.timestamp];
@@ -94,7 +94,7 @@ class DivergenceDetection extends Step {
             tempPoints.push(divObj);
           }
         }
-        /** @TODO eliminate "in-betweeners" */
+        /** eliminate "in-betweeners" */
         tempPoints = tempPoints.filter((div, index) => {
           let point1 = swingPoints[div.p1i];
           let point2 = swingPoints[div.p2i];
@@ -154,7 +154,7 @@ DivergenceDetection.options = {
   requires: ['rsi', 'swing_points'],
   configuration: {
     lookback: {
-      default: 5,
+      default: 3,
       text: 'Lookback'
     }
   }

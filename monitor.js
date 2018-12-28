@@ -128,7 +128,7 @@ class Monitor {
 
             if (RUN_PIPELINE_ON_CLOSE) {
               if (candleOpen) {
-                console.log('Run pipeline on timeframe ' + key + ' (' + data.length + ')');
+                // console.log('Run pipeline on timeframe ' + key + ' (' + data.length + ')');
                 values = data.slice(0, data.length - 1);
 
                 this.runPipelines(key, values).then((resultData) => {
@@ -138,7 +138,7 @@ class Monitor {
                 next(results);
               }
             } else {
-              console.log('Run pipeline on timeframe ' + key + ' (' + data.length + ')');
+              // console.log('Run pipeline on timeframe ' + key + ' (' + data.length + ')');
 
               this.runPipelines(key, values).then((resultData) => {
                 results[key] = resultData;

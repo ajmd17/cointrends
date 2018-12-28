@@ -41,12 +41,12 @@ const filters = {
   },
   'divergence_detection': {
     type: 'overlay',
-    render: (divs, data, moreProps) => divs == null ? null : <DivergenceDetection divs={divs.map((obj) => ({ divClass: obj.class, obj1: data.find(x => x.timestamp == obj.t1), obj2: data.find(x => x.timestamp == obj.t2) }))} data={data} {...moreProps} />
+    render: (divs, data, moreProps) => <DivergenceDetection divs={divs.map((obj) => ({ divClass: obj.class, obj1: data.find(x => x.timestamp == obj.t1), obj2: data.find(x => x.timestamp == obj.t2) }))} data={data} {...moreProps} />
   },
   'rsi': {
     type: 'panel',
     get: (rsi, data) => {
-      let accessor = d => rsi[d.timestamp];
+      let accessor = d => rsi[d.timestamp] || null;
 
       return {
         accessor,
@@ -288,6 +288,10 @@ class ContentPanel extends React.Component {
     const keys = Object.keys(filters).filter((f) => this._filterEnabled(f) && filters[f].type == type);
 
     return keys.map((key, index) => {
+      if (this.state.filterData[key] == null) {
+        return null;
+      }
+
       try {
         let filterObj = filters[key];
 
@@ -459,6 +463,10 @@ class ContentPanel extends React.Component {
     return (
       <div>
         {filters.map(([key, { render }], index) => {
+          if (this.state.filterData[key] == null) {
+            return null;
+          }
+
           return render(this.state.filterData[key], data, moreProps);
         })}
       </div>

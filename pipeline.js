@@ -68,7 +68,6 @@ class Pipeline {
       let key = this.steps[i].key;
       let step = this.steps[i].step;
 
-      console.log(' - Run filter ' + key);
       try {
         /* filter the current data using the pipe */
         let filterResult = step.filter(data.values, data._filters);
