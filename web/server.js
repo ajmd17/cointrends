@@ -36,7 +36,13 @@ app.use(bodyParser.json())
   });
 
 app.use('/api', (req, res) => {
-  request[req.method.toLowerCase()](`http://${config['API_URL']}:${config['API_PORT']}${req.originalUrl}`, Object.assign({}, req.params, req.body), (err, resp) => {
+  const options = {
+    url: `http://${config['API_URL']}:${config['API_PORT']}${req.originalUrl}`,
+    method: req.method.toLowerCase(),
+    json: Object.assign({}, req.params, req.body)
+  };
+
+  request(options, (err, resp) => {
     if (err) {
       console.error('Error: ', err);
       res.status(httpStatus.INTERNAL_SERVER_ERROR).json({

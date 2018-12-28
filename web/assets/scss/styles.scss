@@ -87,10 +87,24 @@ body {
   }
 }
 
+.left {
+  float: left;
+}
+
+.right {
+  float: right;
+}
+
 .btn {
   @include btn;
   &.primary {
+    font-weight: bold;
     background-color: #197CFE;
+    color: #fff !important;
+  }
+  &.green {
+    font-weight: bold;
+    background-color: #3BB123;
     color: #fff !important;
   }
   &:hover:not([disabled]) {

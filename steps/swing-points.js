@@ -2,19 +2,7 @@ const Step = require('../step');
 
 class SwingPoints extends Step {
   constructor() {
-    super({
-      requires: ['fractals'],
-      configuration: {
-        useCandleClose: {
-          default: false,
-          allowed: [true, false],
-          text: 'Use candle close'
-        }
-      }
-    });
-  }
-
-  filter(data) {
+    super();
   }
 
   execute(data, { fractals }) {
@@ -64,5 +52,16 @@ class SwingPoints extends Step {
     return points;
   }
 }
+
+SwingPoints.options = {
+  requires: ['fractals'],
+  configuration: {
+    useCandleClose: {
+      default: false,
+      allowed: [true, false],
+      text: 'Use candle close'
+    }
+  }
+};
 
 module.exports = SwingPoints;

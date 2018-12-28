@@ -35,6 +35,37 @@ class Monitor {
     }
   }
 
+  runPipelines(tf, data) {
+    return new Promise((resolve, reject) => {
+      let obj = {
+        values: data
+      };
+
+      let resultData = this.ranges[tf].pipeline.run(obj);
+
+      let customPromises = [];
+
+      for (let id in this.ranges[tf].customPipelines) {
+        console.log('Run custom pipeline ' + id);
+
+        let { expiry, pipeline } = this.ranges[tf].customPipelines[id];
+
+        customPromises.push(() => {
+          let res = pipeline.run(obj); /** @TODO make async? */
+          /** @TODO stash the data away */
+          return Promise.resolve(res);
+        });
+
+        if (Date.now() >= expiry) {
+          /** @TODO send expiry notification. in future */
+          delete this.ranges[tf].customPipelines[id];
+        }
+      }
+
+      return Promise.all(customPromises).then(() => resolve(resultData));
+    });
+  }
+
   _loop() {
     this._timeout = setTimeout(() => {
       let startDate = (this.mainQueryRange.data.length != 0)
@@ -60,34 +91,7 @@ class Monitor {
           }
         }
 
-        // Promise.all causing a strange anomaly where values are written to mainQueryRange's data property in multiple places??
-        serial(aggRanges.map(k => () => this.ranges[k].queryRange.query(startDate, endDate, true).then(d => results[k] = { values: d }))).then(() => {
-          for (let key in results) {
-            let data = this.ranges[key].queryRange.data;
-            let lastTimestamp = this.ranges[key].queryRange.lastTimestamp;
-
-            let candleOpen = this._lastTimestamps[key] != lastTimestamp;
-            if (candleOpen && this._lastTimestamps[key] != undefined) {
-              console.log('[' + key + '] CANDLE OPEN (' + this._lastTimestamps[key] + ' != ' + lastTimestamp + ')');
-            }
-
-            if (RUN_PIPELINE_ON_CLOSE) {
-              if (candleOpen) {
-                console.log('Run pipeline on timeframe ' + key + ' (' + data.length + ')');
-                results[key] = this.ranges[key].pipeline.run({
-                  values: data.slice(0, data.length - 1)
-                });
-              }
-            } else {
-              console.log('Run pipeline on timeframe ' + key + ' (' + data.length + ')');
-              results[key] = this.ranges[key].pipeline.run({
-                values: data
-              });
-            }
-
-            this._lastTimestamps[key] = lastTimestamp;
-          }
-
+        const next = (results) => {
           let resultsJson = JSON.stringify(results);
 
           if (resultsJson != this._lastResults) {
@@ -101,6 +105,44 @@ class Monitor {
 
           clearTimeout(this._timeout);
           this._loop();
+        };
+
+        // Promise.all causing a strange anomaly where values are written to mainQueryRange's data property in multiple places??
+        serial(aggRanges.map(k => () => this.ranges[k].queryRange.query(startDate, endDate, true).then(d => results[k] = { values: d }))).then(() => {
+          for (let key in results) {
+            let data = this.ranges[key].queryRange.data;
+            let lastTimestamp = this.ranges[key].queryRange.lastTimestamp;
+
+            let candleOpen = this._lastTimestamps[key] != lastTimestamp;
+            if (candleOpen && this._lastTimestamps[key] != undefined) {
+              console.log('[' + key + '] CANDLE OPEN (' + this._lastTimestamps[key] + ' != ' + lastTimestamp + ')');
+            }
+
+            this._lastTimestamps[key] = lastTimestamp;
+
+            let values = data;
+
+            if (RUN_PIPELINE_ON_CLOSE) {
+              if (candleOpen) {
+                console.log('Run pipeline on timeframe ' + key + ' (' + data.length + ')');
+                values = data.slice(0, data.length - 1);
+
+                this.runPipelines(key, values).then((resultData) => {
+                  results[key] = resultData;
+                }).then(next);
+              } else {
+                next(results);
+              }
+            } else {
+              console.log('Run pipeline on timeframe ' + key + ' (' + data.length + ')');
+
+              this.runPipelines(key, values).then((resultData) => {
+                results[key] = resultData;
+              }).then(next);
+            }
+          }
+
+          
         });
       });
     }, this._interval);

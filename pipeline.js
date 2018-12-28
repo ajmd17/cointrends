@@ -9,10 +9,11 @@ const Step = require('./step');
  */
 
 class Pipeline {
-  constructor(steps=[]) {
+  constructor(steps=[], opts={ autoIncludeRequirements: false }) {
     this.steps = [];
     this.dataStore = {};
     this.lastTimestamp = null;
+    this._opts = opts;
 
     for (let step of steps) {
       if (step instanceof Step) {
@@ -20,7 +21,7 @@ class Pipeline {
         this.add(key, step);
       } else {
         console.assert(typeof step === 'function' && step.prototype != null, 'step should be a constructor')
-      
+
         let key = _.snakeCase(step.name);
         let stepObj = new step;
 
@@ -34,13 +35,23 @@ class Pipeline {
   add(key, step) {
     console.assert(step instanceof Step, 'must be an instance of Step');
 
+    Object.assign(step._opts, step.constructor.options);
     step._opts.requires.forEach((requireKey) => {
+      let requireFn;
+
       if (typeof requireKey === 'function') {
+        requireFn = requireKey;
         requireKey = _.snakeCase(requireKey.name);
+      } else if (typeof requireKey === 'string') {
+        requireFn = require('./steps')[_.startCase(requireKey).replace(/\s+/g, '')];
       }
 
       if (this.steps.findIndex(x => x.key == requireKey) === -1) {
-        throw Error(`${key} step requires the '${requireKey}' step`);
+        if (this._opts.autoIncludeRequirements) {
+          this.add(requireKey, new requireFn);
+        } else {
+          throw Error(`${key} step requires the '${requireKey}' step`);
+        }
       }
     });
 

@@ -4,5 +4,6 @@ module.exports = {
   //Trendlines: require('./trendlines'),
   TDSequential: require('./td-sequential'),
   RSI: require('./rsi'),
-  SwingPoints: require('./swing-points')
+  SwingPoints: require('./swing-points'),
+  Volume: require('./volume')
 };

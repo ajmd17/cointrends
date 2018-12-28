@@ -49,13 +49,20 @@ const filters = {
     }
   },
   'volume': {
+
     type: 'panel',
-    accessor: d => d.volume,
-    render: () => <BarSeries yAccessor={d => d.volume} fill={d => d.close > d.open ? "#555555" : "#000000"} />
+    get: (volume, data) => {
+      let accessor = d => volume[d.timestamp];
+
+      return {
+        accessor,
+        render: () => <BarSeries yAccessor={accessor} fill={d => d.close > d.open ? "#555555" : "#000000"} />
+      };
+    }
   },
   'td_sequential': {
     type: 'overlay',
-    render: (tdSequential, data) => <TDSequential  tdSequential={tdSequential.map((seq) => ({ ...seq, obj: data.find(x => x.timestamp == seq.timestamp) }))} />  //<TDSequential tdSequential={{ buyCounts: tdSequential.buyCounts.map(({ timestamp, count }) => ({ obj: data.find(x => x.timestamp == timestamp), count })), sellCounts: tdSequential.sellCounts.map(({ timestamp, count }) => ({ obj: data.find(x => x.timestamp == timestamp), count })) }} />
+    render: (tdSequential, data) => <TDSequential tdSequential={tdSequential.map((seq) => ({ ...seq, obj: data.find(x => x.timestamp == seq.timestamp) }))} />  //<TDSequential tdSequential={{ buyCounts: tdSequential.buyCounts.map(({ timestamp, count }) => ({ obj: data.find(x => x.timestamp == timestamp), count })), sellCounts: tdSequential.sellCounts.map(({ timestamp, count }) => ({ obj: data.find(x => x.timestamp == timestamp), count })) }} />
   }
 };
 
@@ -71,6 +78,7 @@ class ContentPanel extends React.Component {
     super(props);
     this.state = {
       data: null,
+      indicators: {},
       filterData: {},
       symbolList: [],
       selectedSymbol: null,
@@ -84,8 +92,13 @@ class ContentPanel extends React.Component {
   }
 
   componentDidMount() {
-   this.handlePropsUpdate(this.props);
-   
+    this.handlePropsUpdate(this.props);
+    
+    axios.get('/api/indicators').then(({ data }) => {
+      this.setState({ indicators: data.indicators });
+    }).catch((err) => {
+      console.error('Failed to load indicators', err);
+    });
   }
 
   componentWillReceiveProps(newProps) {
@@ -104,7 +117,7 @@ class ContentPanel extends React.Component {
       this.loadData(props);
     }
 
-    if (props.selectedExchange  && ((props.selectedExchange != this.props.selectedExchange) || (this.props.symbolList == null || this.props.symbolList.length == 0))) {
+    if (props.selectedExchange && ((props.selectedExchange != this.props.selectedExchange) || (this.props.symbolList == null || this.props.symbolList.length == 0))) {
       this.loadSymbols(props.selectedExchange);
     }
   };
@@ -127,7 +140,7 @@ class ContentPanel extends React.Component {
       startDate.setSeconds(0, 0);
       //endDate.setSeconds(0, 0);
 
-      return axios.get('/api/' + this.props.selectedExchange + '/' + props.selectedSymbol + '?interval=' + props.timespan + '&start=' + startDate.valueOf() + '&end=' + endDate.valueOf())
+      return axios.get('/api/exchange/' + this.props.selectedExchange + '/' + props.selectedSymbol + '?interval=' + props.timespan + '&start=' + startDate.valueOf() + '&end=' + endDate.valueOf())
       .then(({ data }) => {
         if (data.stream) {
           console.log('Still loading');
@@ -244,7 +257,7 @@ class ContentPanel extends React.Component {
   };
 
   loadSymbols = (selectedExchange) => {
-    axios.get('/api/' + selectedExchange + '/symbols').then(({ data }) => {
+    axios.get('/api/exchange/' + selectedExchange + '/symbols').then(({ data }) => {
       this.setState({ symbolList: data });
     }).catch((err) => console.error('Could not load symbols', err));
   };
@@ -279,6 +292,34 @@ class ContentPanel extends React.Component {
     });
   };
 
+  _serializePipeline = (interval=this.props.timespan) => {
+    return {
+      indicators: Object.keys(this.props.enabledFilters).filter(this._filterEnabled).map((name) => {
+        return {
+          name,
+          config: {}  // @TODO send options over
+        };
+      }),
+      exchange: this.props.selectedExchange,
+      pair: this.props.selectedSymbol,
+      interval
+    };
+  };
+
+  _serializeChart = () => {
+    let pipelines = {};
+
+    DURATIONS.forEach((duration) => {
+      pipelines[duration] = this._serializePipeline(duration);
+    });
+
+    return {
+      exchange: this.props.selectedExchange,
+      pair: this.props.selectedSymbol,
+      interval: this.props.timespan,
+      pipelines
+    };
+  };
   
   renderTimespanSelection() {
     let durationsGrouped = [];
@@ -365,6 +406,21 @@ class ContentPanel extends React.Component {
             </select>
           </div>
 
+          <div className='block right'>
+            <button className='btn green right' onClick={() => {
+              axios.post('/api/chart/create', this._serializeChart()).then((res) => {
+                // @TODO message
+              }).catch((err) => {
+                alert('Failed to save chart: ' + err.toString());
+              });
+            }}>
+              <i className='fa fa-save' aria-hidden='true'></i>
+              &nbsp;Save Chart
+            </button>
+          
+          </div>
+
+
           <div className='time-options'>
             <div className='date-selection'>
               <span className='field'>
@@ -432,14 +488,26 @@ class ContentPanel extends React.Component {
               </Chart>}
         </Accordion>
         <Accordion title='Indicators' isOpened={this.props.openedAccordions['indicators']} onClick={(v) => this.props.onUpdate({ openedAccordions: { ...this.props.openedAccordions, indicators: v } })}>
-          {Object.keys(filters).map((fKey, index) => {
-            return (
-              <div key={fKey}>
-                <input type='checkbox' disabled={!!filters[fKey].disabled} checked={this._filterEnabled(fKey)} onChange={(event) => { this.props.onUpdate({ enabledFilters: { ...this.props.enabledFilters, [fKey]: event.target.checked } }); }} />
-                <span>{fKey}</span>
-              </div>
-            );
-          })}
+          {this.state.indicators != null
+            ? Object.keys(this.state.indicators).map((fKey, index) => {
+                let ind = this.state.indicators[fKey];
+
+                return (
+                  <div key={fKey}>
+                    <input type='checkbox' disabled={!!filters[fKey].disabled} checked={this._filterEnabled(fKey)} onChange={(event) => { this.props.onUpdate({ enabledFilters: { ...this.props.enabledFilters, [fKey]: event.target.checked } }); }} />
+                    <span>{ind.name}</span>
+
+                    {ind.configuration && Object.keys(ind.configuration).length != 0
+                      ? <span>&nbsp;&nbsp;<a href='#'><i className='fa fa-cog'></i></a></span>
+                      : null}
+                    {ind.alerts && Object.keys(ind.alerts).length != 0
+                      ? <span>&nbsp;&nbsp;<a href='#'><i className='fa fa-bell'></i></a></span>
+                      : null}
+                  </div>
+                );
+              })
+            : 'Loading indicators...'
+          }
         </Accordion>
         
         <Accordion title='Alerts' isOpened={this.props.openedAccordions['alerts']} onClick={(v) => this.props.onUpdate({ openedAccordions: { ...this.props.openedAccordions, alerts: v } })}>

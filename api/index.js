@@ -16,8 +16,9 @@ const Api = {
     const app = express();
     this._server = http.createServer(app);
 
-    app.use(bodyParser.json())
-      .use('/api', router());
+    app.use(bodyParser.urlencoded({ extended: false }));
+    app.use(bodyParser.json());
+    app.use('/api', router());
 
     mongoose.connect('mongodb://localhost/cointrends');
     this._server.listen(this.PORT);

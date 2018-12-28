@@ -72,4 +72,21 @@ class RSI extends Step {
   }
 }
 
+RSI.options = {
+  configuration: {
+    source: {
+      default: 'close',
+      allowed: ['open', 'close', 'high', 'low']
+    },
+    length: {
+      default: 14
+    }
+  },
+  alerts: {
+    alertOnOverbought: {
+      text: 'Alert on overbought'
+    }
+  }
+};
+
 module.exports = RSI;

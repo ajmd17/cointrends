@@ -20,9 +20,6 @@ class SupportResistance extends Step {
     this.detail = detail;
   }
 
-  filter(data) {
-  }
-
   execute(data, { fractals }) {
     let clusters = [];
 
@@ -65,5 +62,23 @@ class SupportResistance extends Step {
     return groups;
   }
 }
+
+SupportResistance.options = {
+  requires: ['fractals'],
+  configuration: {
+    threshold: {
+      default: 0.01,
+      min: 0.005,
+      max: 0.1,
+      text: 'Threshold'
+    },
+    detail: {
+      default: 10,
+      min: 5,
+      max: 50,
+      text: 'Detail'
+    }
+  }
+};
 
 module.exports = SupportResistance;

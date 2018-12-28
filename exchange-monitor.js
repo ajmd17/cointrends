@@ -1,13 +1,15 @@
 const request = require('request');
 const path = require('path');
 const fs = require('fs');
-const parseDuration = require('parse-duration');
+const _ = require('lodash');
 
 const Monitor = require('./monitor');
 const Pipeline = require('./pipeline');
 const steps = require('./steps');
 
 const exchanges = require('./exchanges');
+
+const { CustomPipeline } = require('./models/custom-pipeline');
 
 function isStepEnabled(key) {
   return true; /** @TODO */
@@ -94,6 +96,42 @@ class ExchangeMonitor extends Monitor {
 
     this.exchange = exchange;
     this.symbol = symbol;
+
+    this._loadCustomPipelines();
+  }
+
+  _loadCustomPipelines() {
+    return CustomPipeline.find({
+      exchange: this.exchange,
+      pair: this.symbol
+    }).then((customPipelines) => {
+      let toDelete = [];
+
+      customPipelines.forEach((cp) => {
+        if (Date.now() >= cp.expires) {
+          toDelete.push(cp._id);
+        } else {
+          if (this.ranges[cp.interval] != null) {
+            let pipelineSteps = [];
+
+            for (let s of cp.indicators) {
+              let { name, config } = s;
+              let stepName = Object.keys(steps).find((stepName) => name == _.snakeCase(stepName));
+              let step = steps[stepName];
+              pipelineSteps.push(step); /** @TODO specified configuration */
+            }
+
+            this.ranges[cp.interval].customPipelines[cp._id] = new Pipeline(pipelineSteps, {
+              autoIncludeRequirements: true
+            });
+          } else {
+            toDelete.push(cp._id);
+          }
+        }
+      });
+    }).catch((err) => {
+      console.error('Failed to set up custom pipelines: ', err);
+    });
   }
 }
 

@@ -64,7 +64,7 @@ class CandleStickChartWithDarkTheme extends React.Component {
 	}
 
 	render() {
-		const height = 325 + (50 * this.props.panels.length);
+		const height = 325 + (70 * this.props.panels.length);
 		const { type, data: initialData, width, ratio } = this.props;
 
 		const margin = { left: 60, right: 60, top: 30, bottom: 0 };
@@ -132,12 +132,12 @@ class CandleStickChartWithDarkTheme extends React.Component {
 				>
 					<Chart id={1} height={325}
 						yExtents={[d => [d.high, d.low]]}
-						padding={{ top: 0, bottom: 0 }}
+						padding={{ top: 0, bottom: 50 }}
 					>
 						<YAxis axisAt="right" orient="right" ticks={8} showTicks={false} {...yGrid} inverted={true}
 							tickStroke="#555" />
-						<XAxis axisAt="bottom" orient="bottom" showTicks={true} outerTickSize={1}
-							stroke="#555" opacity={0.5} />
+						{/* <XAxis axisAt="bottom" orient="bottom" showTicks={true} outerTickSize={1}
+							stroke="#555" opacity={0.5} /> */}
 
 						<MouseCoordinateY
 							at="right"
@@ -160,28 +160,15 @@ class CandleStickChartWithDarkTheme extends React.Component {
 
 						<OHLCTooltip origin={[-40, -10]}/>
 					</Chart>
-					{/* <Chart id={2} height={50}
-						yExtents={[d => d.volume, smaVolume50.accessor()]}
-						origin={(w, h) => [0, h - 50]}
-					>
-						<YAxis axisAt="left" orient="left" ticks={5} tickFormat={format(".2s")}/>
-
-						<MouseCoordinateY
-							at="left"
-							orient="left"
-							displayFormat={format(".4s")} />
-
-						<BarSeries yAccessor={d => d.volume} fill={d => d.close > d.open ? "#555555" : "#000000"} />
-					</Chart> */}
 					{this.props.panels.map(([key, { accessor, render }], index) => {
-						console.log('panel', key, render);
 						return (
-							<Chart id={3 + index} height={50}
+							<Chart id={2 + index} height={50}
 								yExtents={[d => accessor(d)]}
-								origin={(w, h) => [0, h - (50 * (index + 1))]}
+								origin={(w, h) => [0, h - (70 * (index + 1))]}
+								padding={{ top: 10, bottom: 10 }}
 								key={key}
 							>
-								<YAxis axisAt="left" orient="left" ticks={5} tickFormat={format(".2s")}/>
+								{/* <YAxis axisAt="left" orient="left" ticks={5} tickFormat={format(".2s")}/> */}
 
 								<MouseCoordinateY
 									at="left"
