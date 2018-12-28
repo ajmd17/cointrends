@@ -76,10 +76,12 @@ RSI.options = {
   configuration: {
     source: {
       default: 'close',
-      allowed: ['open', 'close', 'high', 'low']
+      allowed: ['open', 'close', 'high', 'low'],
+      text: 'Source'
     },
     length: {
-      default: 14
+      default: 14,
+      text: 'Length'
     }
   },
   alerts: {

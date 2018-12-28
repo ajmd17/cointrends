@@ -26,8 +26,10 @@ $sq-accordion-height: 30px;
   
   > a {
     display: block;
+    border: 1px solid #ededed;
     //height: $sq-accordion-height;
-    padding: 4px 0;
+    padding: 6px 3px;
+    font-size: 16px;
     cursor: pointer;
     border-radius: 5px;
 

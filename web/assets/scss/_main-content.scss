@@ -33,11 +33,15 @@
 
 .content-panel .close-panel {
   text-align: right;
-  margin-bottom: 5px;
+  margin-bottom: 15px;
 
-  .fa {
-    cursor: pointer;
+  .btn {
+    margin-left: 8px;
   }
+
+  // .fa {
+  //   cursor: pointer;
+  // }
 }
 
 .add-content-panel {
@@ -66,7 +70,6 @@
 
     .block {
       display: inline-block;
-      margin-right: 50px;
       font-size: 14px;
 
       .cb {
@@ -109,7 +112,8 @@
 .time-options {
   display: flex;
   flex-direction: row;
-  margin: 10px 0;
+  // margin: 10px 0;
+  float: right;
 
   > div {
     flex: 1;
@@ -117,6 +121,7 @@
 }
 
 .timespan-selection {
+  float: right;
   .timespan-group {
 
     // flex: 1;

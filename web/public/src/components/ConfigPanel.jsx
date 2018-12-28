@@ -6,6 +6,14 @@ class ConfigPanel extends React.Component {
     values: React.PropTypes.object.isRequired
   };
 
+  _getOptionValue = (key) => {
+    if (this.props.values[key] == null) {
+      return this.props.ind.configuration[key].default;
+    }
+
+    return null;
+  };
+
   _getOptionType = (option) => {
     let type = null;
 
@@ -25,19 +33,20 @@ class ConfigPanel extends React.Component {
     return type;
   };
 
-  renderConfigOption(option, value) {
+  renderConfigOption(key) {
+    let option = this.props.ind.configuration[key];
     let type = this._getOptionType(option);
 
     return (
       <div className='config-option'>
         {type == 'boolean'
-          ? <span><input type='checkbox' checked={value != null ? !!value : !!option.default} />&nbsp;{option.text}</span>
+          ? <span><input type='checkbox' checked={!!this._getOptionValue(key)} />&nbsp;{option.text}</span>
           : null}
         {type == 'string'
-          ? <span>{option.text}:&nbsp;{option.allowed ? <select value={value}>{option.allowed.map((v, i) => <option key={i}>{v}</option>)}</select> : <input type='text' value={value}/>}</span>
+          ? <span>{option.text}:&nbsp;{option.allowed ? <select value={this._getOptionValue(key)}>{option.allowed.map((v, i) => <option key={i}>{v}</option>)}</select> : <input type='text' value={this._getOptionValue(key)}/>}</span>
           : null}
         {type == 'number'
-          ? <span>{option.text}:&nbsp;<input type='number' max={option.max} min={option.min} value={value} /></span>
+          ? <span>{option.text}:&nbsp;<input type='number' max={option.max} min={option.min} value={this._getOptionValue(key)} /></span>
           : null}
       </div>
     );
@@ -48,11 +57,10 @@ class ConfigPanel extends React.Component {
 
     return (
       <div className='config-panel'>
-        <hr/>
         {Object.keys(ind.configuration).map((key, index) => {
           return (
             <div key={key}>
-              {this.renderConfigOption(ind.configuration[key], this.props.values[key])}
+              {this.renderConfigOption(key)}
             </div>
           );
         })}

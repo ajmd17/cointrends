@@ -287,6 +287,10 @@ class ContentPanel extends React.Component {
         let filterObj = filters[key];
 
         if (typeof filterObj.get === 'function') { // 'get' function, used to return a filter object for stateful data.
+          if (this.state.filterData[key] == null) {
+            return null;
+          }
+
           filterObj = filterObj.get(this.state.filterData[key], this.state.data);
         }
 
@@ -365,9 +369,10 @@ class ContentPanel extends React.Component {
   renderControls() {
     return (
       <div className='controls'>
+
+        {this.renderTimespanSelection()}
         <div className='main-dropdowns'>
           <div className='block'>
-            <span>Exchange: </span>
             <select
               value={this.props.selectedExchange}
               onChange={(event) => {
@@ -385,7 +390,6 @@ class ContentPanel extends React.Component {
             </select>
           </div>
           <div className='block'>
-            <span>Symbol: </span>
             <select
               value={this.props.selectedSymbol}
               onChange={(event) => {
@@ -411,23 +415,11 @@ class ContentPanel extends React.Component {
             </select>
           </div>
 
-          <div className='block right'>
-            <button className='btn green right' onClick={() => {
-              axios.post('/api/chart/create', this._serializeChart()).then((res) => {
-                // @TODO message
-              }).catch((err) => {
-                alert('Failed to save chart: ' + err.toString());
-              });
-            }}>
-              <i className='fa fa-save' aria-hidden='true'></i>
-              &nbsp;Save Chart
-            </button>
           
-          </div>
 
 
-          <div className='time-options'>
-            <div className='date-selection'>
+          <div className='time-options' style={{ display: 'none' } }>
+            <div className='date-selection' style={{ display: 'none' }}>
               <span className='field'>
                 <label>From:</label>
                 {/* <input type='text'/> */}
@@ -447,14 +439,9 @@ class ContentPanel extends React.Component {
                 </div>
               </span>
             </div>
-            {this.renderTimespanSelection()}
+            {/* {this.renderTimespanSelection()} */}
           </div>
           
-        </div>
-
-        <div>
-          <span>Update interval: </span>
-          <input type='number' value={this.state.intervalValue} onChange={(event) => this.setState({ intervalValue: Math.min(Math.max(500, event.target.value), 15000) })} />
         </div>
 
       </div>
@@ -476,15 +463,34 @@ class ContentPanel extends React.Component {
   render() {
     return (
       <div className='content-panel'>
-        <div className='close-panel'>
+        {/* <div className='close-panel'>
           <i className='fa fa-close close-panel' title='Close' onClick={this.props.onDelete}></i>
+        </div> */}
+
+        <div className='close-panel block'>
+          <button className='btn primary small' onClick={() => {
+            axios.post('/api/chart/create', this._serializeChart()).then((res) => {
+              // @TODO message
+            }).catch((err) => {
+              alert('Failed to save chart: ' + err.toString());
+            });
+          }}>
+            <i className='fa fa-upload' aria-hidden='true'></i>
+            &nbsp;&nbsp;Save Chart
+          </button>
+
+          <button className='btn dark small' onClick={this.props.onDelete}>
+            <i className='fa fa-close' aria-hidden='true'></i>
+            &nbsp;&nbsp;Close Chart
+          </button>
+        
         </div>
         
         {this.renderControls()}
 
         <Accordion title='Chart' isOpened={this.props.openedAccordions['chart']} onClick={(v) => this.props.onUpdate({ openedAccordions: { ...this.props.openedAccordions, chart: v } })}>
           {this.state.data == null
-            ? <LoadingMessage />
+            ? <LoadingMessage text='Loading chart data...' />
             : <Chart type='hybrid' data={this.state.data}
                 renderOverlayFilters={(data, moreProps) => this.renderFilters('overlay', data, moreProps)}
                 panels={this._getFilters('panel')}
@@ -498,20 +504,13 @@ class ContentPanel extends React.Component {
                 let ind = this.state.indicators[fKey];
 
                 return (
-                  <div className='card-container' key={fKey}>
-                    <div className='card-body'>
+                  <div className='config-container' key={fKey}>
+                    <div className={`config-body${this._filterEnabled(fKey) ? ' enabled' : ''}`}>
                       <input type='checkbox' disabled={!!filters[fKey].disabled} checked={this._filterEnabled(fKey)} onChange={(event) => { this.props.onUpdate({ enabledFilters: { ...this.props.enabledFilters, [fKey]: event.target.checked } }); }} />
-                      <span>{ind.name}</span>
+                      <span className='title'>{ind.name}</span>
 
                       {ind.configuration && Object.keys(ind.configuration).length != 0
-                        ? <div className='configuration-options'>
-                            <hr/>
-                            {Object.keys(ind.configuration).map((key, index) => {
-                              return (
-                                <ConfigPanel ind={ind} values={this.props.indicatorConfiguration[fKey]} />
-                              );
-                            })}
-                          </div>
+                        ? <ConfigPanel ind={ind} values={{}} />
                         : null}
                       {ind.alerts && Object.keys(ind.alerts).length != 0
                         ? <span>&nbsp;&nbsp;<a href='#'><i className='fa fa-bell'></i></a></span>
@@ -522,10 +521,6 @@ class ContentPanel extends React.Component {
               })
             : 'Loading indicators...'
           }
-        </Accordion>
-        
-        <Accordion title='Alerts' isOpened={this.props.openedAccordions['alerts']} onClick={(v) => this.props.onUpdate({ openedAccordions: { ...this.props.openedAccordions, alerts: v } })}>
-          <AlertOptions data={this.state.data} />
         </Accordion>
       </div>
     );

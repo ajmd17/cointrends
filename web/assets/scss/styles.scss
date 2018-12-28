@@ -70,7 +70,7 @@ body {
   padding: 8px 14px;
   border: none;
   border-radius: 4px;
-  font-size: 16px;
+  font-size: 14px;
   font-family: inherit;
   text-decoration: none;
   text-align: center;
@@ -107,6 +107,10 @@ body {
     background-color: #3BB123;
     color: #fff !important;
   }
+  &.dark {
+    background-color: #68747d;
+    color: #fff !important;
+  }
   &:hover:not([disabled]) {
     //transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
@@ -118,8 +122,8 @@ body {
     width: 360px;
   }
   &.small {
-    padding: 3px 10px;
-    font-size: 15px;
+    padding: 5px 10px;
+    font-size: 14px;
   }
 }
 
@@ -174,19 +178,46 @@ hr {
   border-bottom: 1px solid #333;
 }
 
-.card-container {
-  display: inline-block;
-  width: 31%;
-  padding: 1%;
+.config-container {
+  // display: inline-block;
+  // width: 31%;
+  // padding: 1%;
+  margin: 8px;
 
-  .card-body {
+  .config-body {
     position: relative;
     border-radius: 5px;
     box-shadow: 0 1px 2px -1px rgba(50,50,50,0.6);
-    background-color: #fff;
-    padding: 4px;
+    background-color: #fefefe;
+    padding: 6px 2px;
     width: 100%;
-    min-height: 35px;
+    // min-height: 35px;
+    display: flex;
+    flex-direction: row;
+
+    &.enabled {
+      background-color: #e3f2f7;
+    }
+
+    > .title {
+      flex: 1;
+      font-size: 16px;
+      margin-left: 4px;
+      color: #3086f9;
+    }
+
+    .config-panel {
+      display: flex;
+      .config-option {
+        font-size: 12px;
+        margin: 0 3px;
+
+        input, select {
+          font: inherit;
+        }
+      }
+    }
+
   }
 }
 
