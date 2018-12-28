@@ -29,9 +29,12 @@ function api() {
       indicators
       /** @TODO expiry based on user status */
     }).save().then((customPipeline) => {
-      range.customPipelines[customPipeline._id] = new Pipeline(pipelineSteps, {
-        autoIncludeRequirements: true
-      });
+      range.customPipelines[customPipeline._id] = {
+        expiry: customPipeline.expires.valueOf(),
+        pipeline: new Pipeline(pipelineSteps, {
+          autoIncludeRequirements: true
+        })
+      };
 
       return customPipeline;
     }).catch((err) => {

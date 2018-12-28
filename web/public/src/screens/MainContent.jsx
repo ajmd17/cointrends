@@ -11,7 +11,7 @@ const defaultContentPanel = {
   timespan: DURATIONS.indexOf('4h') !== -1 ? '4h' : DURATIONS[0],
   dateRange: [Date.now() - (60000 * 60 * 24 * 7 * 4) /* 4 weeks */, null],
   openedAccordions: { chart: true, indicators: true },
-  enabledFilters: { 'support_resistance': true },
+  enabledFilters: { },//'support_resistance': true },
   indicatorConfiguration: {}
 };
 

@@ -18,6 +18,7 @@ import Trendlines from './filters/Trendlines';
 import TDSequential from './filters/TDSequential';
 import RSI from './filters/RSI';
 import SwingPoints from './filters/SwingPoints';
+import DivergenceDetection from './filters/DivergenceDetection';
 
 const filters = {
   'support_resistance': {
@@ -38,6 +39,10 @@ const filters = {
     type: 'overlay',
     render: (swingPoints, data) => <SwingPoints swingPoints={swingPoints.map((obj) => ({ swingClass: obj.class, obj1: data.find(x => x.timestamp == obj.t1), obj2: data.find(x => x.timestamp == obj.t2) }))} />
   },
+  'divergence_detection': {
+    type: 'overlay',
+    render: (divs, data, moreProps) => divs == null ? null : <DivergenceDetection divs={divs.map((obj) => ({ divClass: obj.class, obj1: data.find(x => x.timestamp == obj.t1), obj2: data.find(x => x.timestamp == obj.t2) }))} data={data} {...moreProps} />
+  },
   'rsi': {
     type: 'panel',
     get: (rsi, data) => {
@@ -57,7 +62,7 @@ const filters = {
 
       return {
         accessor,
-        render: () => <BarSeries yAccessor={accessor} fill={d => d.close > d.open ? "#555555" : "#000000"} />
+        render: () => volume == null ? null : <BarSeries yAccessor={accessor} fill={d => d.close > d.open ? "#555555" : "#000000"} />
       };
     }
   },
@@ -506,7 +511,7 @@ class ContentPanel extends React.Component {
                 return (
                   <div className='config-container' key={fKey}>
                     <div className={`config-body${this._filterEnabled(fKey) ? ' enabled' : ''}`}>
-                      <input type='checkbox' disabled={!!filters[fKey].disabled} checked={this._filterEnabled(fKey)} onChange={(event) => { this.props.onUpdate({ enabledFilters: { ...this.props.enabledFilters, [fKey]: event.target.checked } }); }} />
+                      <input type='checkbox' disabled={!filters[fKey] || filters[fKey].disabled} checked={this._filterEnabled(fKey)} onChange={(event) => { this.props.onUpdate({ enabledFilters: { ...this.props.enabledFilters, [fKey]: event.target.checked } }); }} />
                       <span className='title'>{ind.name}</span>
 
                       {ind.configuration && Object.keys(ind.configuration).length != 0

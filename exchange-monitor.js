@@ -24,11 +24,12 @@ class ExchangeMonitor extends Monitor {
         let urlString = url({ symbol: this.symbol, interval, start, end });
 
         let duration = ((new Date(end).valueOf() - new Date(start).valueOf()) / 60000).toFixed(2);
-        console.log('Fetch remote (' + interval + ') - ' + duration + 'm range');
+        console.log('Fetch remote (' + this.exchange + '/' + this.symbol + '/' + interval + ') - ' + duration + 'm range');
     
         return new Promise((resolve, reject) => {
           request.get(urlString, (err, resp) => {
             if (err) {
+              console.error(`Request error (${urlString}): `, err);
               reject(err);
             } else {
               try {
@@ -67,30 +68,35 @@ class ExchangeMonitor extends Monitor {
           });
         });
       },
-      onResults: (results) => {
-        // @TODO: delay writing to maybe once every ~5 minutes to prevent too much disk usage
+      onCandleOpen: () => {
         if (exchanges[this.exchange].dirpath) {
           const filepath = path.join(exchanges[this.exchange].dirpath, `${this.symbol}.json`);
 
-          // write new line. each line is a record
-          /*fs.appendFile(filepath, JSON.stringify(results) + '\n', (err) => {
-            if (err) {
-              console.error(`Failed to write file ${filepath}`, err);
-            }
-          });*/
+          let data = {};
 
-          // let allResults = {};
+          Object.keys(this.ranges).forEach((key) => {
+            let d = this.ranges[key].queryRange.data;
 
-          // for (let key in this.ranges) {
-          //   allResults[key] = this.ranges[key].data;
-          // }
-
-          fs.writeFile(filepath, JSON.stringify(results, null, '\t'), (err) => {
-            if (err) {
-              console.error(`Failed to write file ${filepath}`, err);
-            }
+            data[key] = { values: d.slice(0, d.length - 1) };
           });
+
+          let str = JSON.stringify(data, null, '\t');
+
+          if (str) {
+            console.log('Writing to datastore ' + filepath);
+
+            fs.writeFile(filepath, str, (err) => {
+              if (err) {
+                console.error(`Failed to write file ${filepath}`, err);
+              }
+            });
+          }
         }
+      },
+      onResults: (results) => {
+        return;
+        // @TODO: delay writing to maybe once every ~5 minutes to prevent too much disk usage
+        
       }
     }, Object.keys(steps).filter((key) => isStepEnabled(key)).map((key) => steps[key]));
 
@@ -121,9 +127,12 @@ class ExchangeMonitor extends Monitor {
               pipelineSteps.push(step); /** @TODO specified configuration */
             }
 
-            this.ranges[cp.interval].customPipelines[cp._id] = new Pipeline(pipelineSteps, {
-              autoIncludeRequirements: true
-            });
+            this.ranges[cp.interval].customPipelines[cp._id] = {
+              expiry: cp.expires.valueOf(),
+              pipeline: new Pipeline(pipelineSteps, {
+                autoIncludeRequirements: true
+              })
+            };
           } else {
             toDelete.push(cp._id);
           }

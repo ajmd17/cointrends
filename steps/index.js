@@ -5,5 +5,6 @@ module.exports = {
   TDSequential: require('./td-sequential'),
   RSI: require('./rsi'),
   SwingPoints: require('./swing-points'),
-  Volume: require('./volume')
+  Volume: require('./volume'),
+  DivergenceDetection: require('./divergence-detection')
 };

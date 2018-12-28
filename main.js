@@ -6,6 +6,7 @@ const startDate = new Date();
 startDate.setDate(1);
 
 const exchanges = require('./exchanges');
+const durations = require('./durations');
 const ExchangeMonitor = require('./exchange-monitor');
 
 const dataStorePath = path.join(__dirname, 'datastore');
@@ -23,7 +24,8 @@ Api.startServer().then(() => {
     if (exchange.symbols) {
       exchange.symbols.forEach((symbol) => {
         exchange.monitors[symbol] = new ExchangeMonitor(key, symbol, startDate);
-        exchange.monitors[symbol].start().then(() => {
+        
+        const preloadData = () => {
           const hashKey = crypto.createHash('sha1').update(key).digest('hex');
           const keyPath = path.join(dataStorePath, hashKey);
       
@@ -34,10 +36,32 @@ Api.startServer().then(() => {
   
             if (fs.existsSync(filepath)) {
               // @TODO: json file exists - preload the data.
+              console.log('Preload ' + filepath);
+              let content = fs.readFileSync(filepath);
+
+              try {
+                let json = JSON.parse(content);
+
+                Object.keys(json).forEach((tf) => {
+                  console.assert(durations.indexOf(tf) !== -1, 'key should be a duration but got ' + tf);
+
+                  console.assert(json[tf].values instanceof Array, `json[${tf}].values should be an Array`);
+                  exchange.monitors[symbol].ranges[tf].queryRange.data = json[tf].values;
+                });
+    
+                console.log('Preloaded ' + filepath);
+              } catch (err) {
+                console.error(`Failed to load JSON file '${filepath}': `, err);
+              }
             }
           }
       
           exchange.dirpath = keyPath;
+        };
+        
+        preloadData();
+        exchange.monitors[symbol].start().then(() => {
+          
         });
       });
     }

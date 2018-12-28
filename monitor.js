@@ -7,7 +7,7 @@ const durations = require('./durations');
 const RUN_PIPELINE_ON_CLOSE = true;
 
 class Monitor {
-  constructor(startDate, callbacks, pipelineSteps=[], interval=1000) {
+  constructor(startDate, callbacks, pipelineSteps=[], interval=10000) {
     if (typeof callbacks.onFetch !== 'function') {
       throw Error('callbacks.onFetch must be a function that returns a Promise');
     }
@@ -25,7 +25,10 @@ class Monitor {
         queryRange: duration != this.mainQueryRange.interval
           ? new QueryRange(duration, (interval, start, end) => {
               // temp
-              return callbacks.onFetch(interval, start, end);
+              return callbacks.onFetch(interval, start, end).catch((err) => {
+                console.error('onFetch callback failed: ', err);
+                return null;
+              });
             //return this._aggregateData(this.ranges[duration].queryRange.intervalMs, start, end);
             })
           : this.mainQueryRange,
@@ -52,7 +55,8 @@ class Monitor {
 
         customPromises.push(() => {
           let res = pipeline.run(obj); /** @TODO make async? */
-          /** @TODO stash the data away */
+          // stash the data away
+          this.ranges[tf].customPipelines[id].data = res;
           return Promise.resolve(res);
         });
 
@@ -139,6 +143,11 @@ class Monitor {
               this.runPipelines(key, values).then((resultData) => {
                 results[key] = resultData;
               }).then(next);
+            }
+
+
+            if (candleOpen && typeof this.callbacks.onCandleOpen === 'function') {
+              this.callbacks.onCandleOpen();
             }
           }
 

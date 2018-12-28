@@ -154,6 +154,7 @@ class QueryRange {
       }
       console.assert(duplicates.length == 0, `Duplicates found: ${duplicates.join(', ')}`);
       return () => this.fetchHandler(this.interval, queryRequest.startTime, queryRequest.endTime, this.interval).then((result) => {
+        console.assert(result != null, 'result != null check failed');
         sections[queryRequest.index] = { found: false, values: result };
       });
     }));

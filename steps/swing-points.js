@@ -35,9 +35,9 @@ class SwingPoints extends Step {
               resultObj.class = 'EH';
             }
           } else if (highLow == 'L') {
-            if (dataObj.high > prevObj.high) {
+            if (dataObj.low > prevObj.low) {
               resultObj.class = 'HL';
-            } else if (dataObj.high < prevObj.high) {
+            } else if (dataObj.low < prevObj.low) {
               resultObj.class = 'LL';
             } else {
               resultObj.class = 'EL';
