@@ -11,7 +11,7 @@ function percentDiff(a, b) {
 }
 
 class SupportResistance extends Step {
-  constructor(threshold=0.01, detail=20) {
+  constructor(threshold=0.01, detail=10) {
     super({
       requires: ['fractals']
     });

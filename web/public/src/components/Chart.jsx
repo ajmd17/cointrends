@@ -32,7 +32,7 @@ import {
 	StochasticTooltip,
 	GroupTooltip,
 } from "react-stockcharts/lib/tooltip";
-import { rsi, sma, ema, stochasticOscillator, bollingerBand } from "react-stockcharts/lib/indicator";
+import { atr, rsi, sma, ema, stochasticOscillator, bollingerBand } from "react-stockcharts/lib/indicator";
 import { fitWidth } from "react-stockcharts/lib/helper";
 import { last } from "react-stockcharts/lib/utils";
 
@@ -64,17 +64,17 @@ class CandleStickChartWithDarkTheme extends React.Component {
 	}
 
 	render() {
-		const height = 450;
+		const height = 325 + (50 * this.props.panels.length);
 		const { type, data: initialData, width, ratio } = this.props;
 
-		const margin = { left: 70, right: 70, top: 20, bottom: 30 };
+		const margin = { left: 60, right: 60, top: 30, bottom: 0 };
 
 		const gridHeight = height - margin.top - margin.bottom;
 		const gridWidth = width - margin.left - margin.right;
 
 		const showGrid = true;
-		const yGrid = showGrid ? { innerTickSize: -1 * gridWidth, tickStrokeOpacity: 0.2 } : {};
-		const xGrid = showGrid ? { innerTickSize: -1 * gridHeight, tickStrokeOpacity: 0.2 } : {};
+		const yGrid = showGrid ? { innerTickSize: -1 * gridWidth, tickStrokeOpacity: 0.6 } : {};
+		const xGrid = showGrid ? { innerTickSize: -1 * gridHeight, tickStrokeOpacity: 0.6 } : {};
 
 		var ema20 = ema()
 			.options({ windowSize: 20 })
@@ -94,11 +94,12 @@ class CandleStickChartWithDarkTheme extends React.Component {
 			.options({ windowSize: 50, sourcePath: "volume" })
 			.merge((d, c) => {d.smaVolume50 = c;})
 			.accessor(d => d.smaVolume50);
-			
-		// var rsiCalculator = rsi()
+
+		// var atr14 = atr()
 		// 	.options({ windowSize: 14 })
-		// 	.merge((d, c) => {d.rsi = c})
-		// 	.accessor(d => d.rsi);
+		// 	.merge((d, c) => {d.atr14 = c})
+		// 	.accessor(d => d.atr14);
+
 
 		const calculatedData = ema50(ema20(smaVolume50(initialData)));
 		const xScaleProvider = discontinuousTimeScaleProvider
@@ -143,24 +144,25 @@ class CandleStickChartWithDarkTheme extends React.Component {
 							orient="right"
 							displayFormat={format('.8f')} />
 
-						<LineSeries yAccessor={ema20.accessor()} stroke={ema20.stroke()}/>
-						<LineSeries yAccessor={ema50.accessor()} stroke={ema50.stroke()}/>
+						{/* <LineSeries yAccessor={ema20.accessor()} stroke={ema20.stroke()}/>
+						<LineSeries yAccessor={ema50.accessor()} stroke={ema50.stroke()}/> */}
 
 						<CandlestickSeries
-							stroke={d => d.close > d.open ? "#00B250" : "#B21D10"}
-							wickStroke={d => d.close > d.open ? "#00B250" : "#B21D10"}
-							fill={d => d.close > d.open ? "#00B250" : "#B21D10"}/>
+							stroke={d => d.close > d.open ? "#000000" : "#000000"}
+							wickStroke={d => d.close > d.open ? "#000000" : "#000000"}
+							fill={d => d.close > d.open ? "#ffffff" : "#000000"}
+							opacity={1}/>
 						{this.props.children}
-						{this.props.renderFilters(data, { xScale, xAccessor })}
+						{this.props.renderOverlayFilters(data, { xScale, xAccessor })}
 						<EdgeIndicator itemType="last" orient="right" edgeAt="right"
 							displayFormat={format('.8f')}
 							yAccessor={d => d.close} fill={d => d.close > d.open ? "#00B250" : "#B21D10"}/>
 
 						<OHLCTooltip origin={[-40, -10]}/>
 					</Chart>
-					<Chart id={2} height={125}
+					{/* <Chart id={2} height={50}
 						yExtents={[d => d.volume, smaVolume50.accessor()]}
-						origin={(w, h) => [0, h - 400]}
+						origin={(w, h) => [0, h - 50]}
 					>
 						<YAxis axisAt="left" orient="left" ticks={5} tickFormat={format(".2s")}/>
 
@@ -169,9 +171,41 @@ class CandleStickChartWithDarkTheme extends React.Component {
 							orient="left"
 							displayFormat={format(".4s")} />
 
-						<BarSeries yAccessor={d => d.volume} fill={d => d.close > d.open ? "#6BA583" : "#FF0000"} />
-						<AreaSeries yAccessor={smaVolume50.accessor()} stroke={smaVolume50.stroke()} fill={smaVolume50.fill()}/>
-					</Chart>
+						<BarSeries yAccessor={d => d.volume} fill={d => d.close > d.open ? "#555555" : "#000000"} />
+					</Chart> */}
+					{this.props.panels.map(([key, { accessor, render }], index) => {
+						console.log('panel', key, render);
+						return (
+							<Chart id={3 + index} height={50}
+								yExtents={[d => accessor(d)]}
+								origin={(w, h) => [0, h - (50 * (index + 1))]}
+								key={key}
+							>
+								<YAxis axisAt="left" orient="left" ticks={5} tickFormat={format(".2s")}/>
+
+								<MouseCoordinateY
+									at="left"
+									orient="left"
+									displayFormat={format(".4s")} />
+
+								{/* <BarSeries yAccessor={d => d.volume} fill={d => d.close > d.open ? "#555555" : "#000000"} /> */}
+								{render()}
+							</Chart>
+						);
+					})}
+					{/* <Chart id={3} height={125}
+						yExtents={atr14.accessor()}
+						origin={(w, h) => [0, h - 250]}
+					>
+						<YAxis axisAt="left" orient="left" ticks={5} tickFormat={format(".2s")}/>
+
+						<MouseCoordinateY
+							at="left"
+							orient="left"
+							displayFormat={format(".4s")} />
+
+						<LineSeries yAccessor={atr14.accessor()} stroke={atr14.stroke()}/>
+					</Chart> */}
 					<CrossHairCursor stroke="#222222" />
 				</ChartCanvas>
 			</div>
@@ -183,11 +217,13 @@ CandleStickChartWithDarkTheme.propTypes = {
 	width: PropTypes.number.isRequired,
 	ratio: PropTypes.number.isRequired,
 	type: PropTypes.oneOf(["svg", "hybrid"]).isRequired,
-	renderFilters: React.PropTypes.func.isRequired
+	renderOverlayFilters: React.PropTypes.func.isRequired,
+	panels: React.PropTypes.arrayOf(React.PropTypes.array) // [key, renderfunc]
 };
 
 CandleStickChartWithDarkTheme.defaultProps = {
 	type: "svg",
+	panels: []
 };
 CandleStickChartWithDarkTheme = fitWidth(CandleStickChartWithDarkTheme);
 

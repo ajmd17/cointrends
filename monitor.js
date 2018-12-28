@@ -4,6 +4,8 @@ const { serial } = require('./util');
 
 const durations = require('./durations');
 
+const RUN_PIPELINE_ON_CLOSE = true;
+
 class Monitor {
   constructor(startDate, callbacks, pipelineSteps=[], interval=1000) {
     if (typeof callbacks.onFetch !== 'function') {
@@ -12,9 +14,10 @@ class Monitor {
 
     this.startDate = startDate;
     this.callbacks = callbacks;
-    this.mainQueryRange = new QueryRange('5m', callbacks.onFetch);
+    this.mainQueryRange = new QueryRange(durations[0], callbacks.onFetch);
     this._interval = interval;
     this.ranges = {};
+    this._lastTimestamps = {}; // used for determining candle open
     this._lastResults = null;
 
     for (let duration of durations) {
@@ -26,7 +29,8 @@ class Monitor {
             //return this._aggregateData(this.ranges[duration].queryRange.intervalMs, start, end);
             })
           : this.mainQueryRange,
-        pipeline: new Pipeline(pipelineSteps)
+        pipeline: new Pipeline(pipelineSteps),
+        customPipelines: {} // per-user, custom configured. will go inactive over time
       };
     }
   }
@@ -45,25 +49,43 @@ class Monitor {
       endDate = endDate.valueOf();
 
       this.mainQueryRange.query(startDate, endDate, true).then((data) => {
-        let results = {};
-        let aggRanges = [];
+        let results = {
+          [this.mainQueryRange.interval]: { values: data }
+        };
 
+        let aggRanges = [];
         for (let key in this.ranges) {
-          if (this.ranges[key] == this.mainQueryRange) {
-            results[this.ranges[key].queryRange.interval] = { values: data };
-            continue;
+          if (this.ranges[key] != this.mainQueryRange) {
+            aggRanges.push(key);
           }
-  
-          aggRanges.push(key);
         }
 
         // Promise.all causing a strange anomaly where values are written to mainQueryRange's data property in multiple places??
-        //serial(aggRanges.map(k => () => this.ranges[k].queryRange.query(startDate, endDate, true).then(d => results[k] = { values: d }))).then(() => {
+        serial(aggRanges.map(k => () => this.ranges[k].queryRange.query(startDate, endDate, true).then(d => results[k] = { values: d }))).then(() => {
           for (let key in results) {
-            //if (key != 'trendlines' || (key == '4h' || key == '1h')) { // temp
-            //  console.log('Run pipeline on timeframe ' + key + ' (' + this.ranges[key].queryRange.data.length + ')');
-              results[key] = this.ranges[key].pipeline.run({ values: this.ranges[key].queryRange.data });
-            //}
+            let data = this.ranges[key].queryRange.data;
+            let lastTimestamp = this.ranges[key].queryRange.lastTimestamp;
+
+            let candleOpen = this._lastTimestamps[key] != lastTimestamp;
+            if (candleOpen && this._lastTimestamps[key] != undefined) {
+              console.log('[' + key + '] CANDLE OPEN (' + this._lastTimestamps[key] + ' != ' + lastTimestamp + ')');
+            }
+
+            if (RUN_PIPELINE_ON_CLOSE) {
+              if (candleOpen) {
+                console.log('Run pipeline on timeframe ' + key + ' (' + data.length + ')');
+                results[key] = this.ranges[key].pipeline.run({
+                  values: data.slice(0, data.length - 1)
+                });
+              }
+            } else {
+              console.log('Run pipeline on timeframe ' + key + ' (' + data.length + ')');
+              results[key] = this.ranges[key].pipeline.run({
+                values: data
+              });
+            }
+
+            this._lastTimestamps[key] = lastTimestamp;
           }
 
           let resultsJson = JSON.stringify(results);
@@ -79,7 +101,7 @@ class Monitor {
 
           clearTimeout(this._timeout);
           this._loop();
-        //});
+        });
       });
     }, this._interval);
   }

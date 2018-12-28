@@ -46,15 +46,15 @@ class TDSequential extends Step {
 
       let barDistance = (data.length - i - 1);
 
-      if (this.getAlertSetting('Alert on 9') === true) {
-        if (barDistance < this.getAlertSetting('Maximum bar distance')) {
-          if (sellCount == 9) {
-            this.alert('Alert on 9', `Sell countdown at 9 (${barDistance == 0 ? 'current bar' : (barDistance) + ' bars away'})`);
-          } else if (buyCount == 9) {
-            this.alert('Alert on 9', `Buy countdown at 9 (${barDistance == 0 ? 'current bar' : (barDistance) + ' bars away'})`);
-          }
-        }
-      }
+      // if (this.getAlertSetting('Alert on 9') === true) {
+      //   if (barDistance < this.getAlertSetting('Maximum bar distance')) {
+      //     if (sellCount == 9) {
+      //       this.alert('Alert on 9', `Sell countdown at 9 (${barDistance == 0 ? 'current bar' : (barDistance) + ' bars away'})`);
+      //     } else if (buyCount == 9) {
+      //       this.alert('Alert on 9', `Buy countdown at 9 (${barDistance == 0 ? 'current bar' : (barDistance) + ' bars away'})`);
+      //     }
+      //   }
+      // }
 
       objs.push({ timestamp: data[i].timestamp, sellCountdown: sellCount, buyCountdown: buyCount });
     }

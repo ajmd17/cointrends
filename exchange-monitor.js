@@ -10,7 +10,7 @@ const steps = require('./steps');
 const exchanges = require('./exchanges');
 
 function isStepEnabled(key) {
-  return key == 'RSI'; /** @TODO */
+  return true; /** @TODO */
 }
 
 class ExchangeMonitor extends Monitor {
@@ -22,7 +22,7 @@ class ExchangeMonitor extends Monitor {
         let urlString = url({ symbol: this.symbol, interval, start, end });
 
         let duration = ((new Date(end).valueOf() - new Date(start).valueOf()) / 60000).toFixed(2);
-        console.log('Fetch remote (' + parseDuration(interval) + ') - ' + duration + 'm range');
+        console.log('Fetch remote (' + interval + ') - ' + duration + 'm range');
     
         return new Promise((resolve, reject) => {
           request.get(urlString, (err, resp) => {

@@ -7,10 +7,10 @@ import {
 	hexToRGBA, isDefined, functor, plotDataLengthBarWidth, head, last
 } from "react-stockcharts/lib/utils";
 
-class CountArrow extends React.Component {
+class SwingPoint extends React.Component {
   static propTypes = {
     direction: React.PropTypes.oneOf(['up', 'down']),
-    count: React.PropTypes.number.isRequired
+    swingClass: React.PropTypes.string.isRequired
   };
 
   drawOnCanvas(ctx, moreProps) {
@@ -34,11 +34,7 @@ class CountArrow extends React.Component {
             : yScale(d.low) + 5;
 
           ctx.font = '12px Arial';
-          if (this.props.count == 9) {
-            ctx.font = 'Bold ' + ctx.font;
-          }
-
-          const text = this.props.count.toString();
+          const text = this.props.swingClass.toString();
 
           const width = 10;
           const height = 5;
@@ -85,53 +81,28 @@ class CountArrow extends React.Component {
   }
 }
 
-class TDSequential extends React.Component {
+class SwingPoints extends React.Component {
   static propTypes = {
-    //tdSequential: React.PropTypes.array.isRequired
+    swingPoints: React.PropTypes.arrayOf(React.PropTypes.shape({
+      swingClass: React.PropTypes.string.isRequired,
+      obj1: React.PropTypes.object.isRequired,
+      obj2: React.PropTypes.object.isRequired
+    })).isRequired
   };
 
   render() {
     return (
       <div>
-        {/* {this.props.tdSequential.map((obj, index) => {
-          if (obj.buySetup) {
-            
-            return (
-              <CountArrow direction='up' object={obj.obj} count={0} key={index} />
-            );
-          } else if (obj.sellSetup) {
-
-            return (
-              <CountArrow direction='down' object={obj.obj} count={0} key={index} />
-            );
-          }
-        })} */}
-        {this.props.tdSequential.map((obj, index) => {
-          if (obj.obj == null) return null;
+        {this.props.swingPoints.map(({ swingClass, obj1, obj2 }, index) => {
           return (
-            <div key={obj.timestamp}>
-              {obj.sellCountdown && obj.sellCountdown < 10
-                ? <CountArrow direction='down' object={obj.obj} count={obj.sellCountdown} />
-                : null}
-              {obj.buyCountdown && obj.buyCountdown < 10
-                ? <CountArrow direction='up' object={obj.obj} count={obj.buyCountdown} />
-                : null}
+            <div key={obj1.timestamp}>
+              <SwingPoint swingClass={swingClass} direction={swingClass[1] == 'H' ? 'down' : 'up'} object={obj1} />
             </div>
           );
         })}
-        {/* {this.props.tdSequential.buyCounts.map(({ obj, count }, index) => {
-          return (
-            <CountArrow direction='up' object={obj} count={count} key={index} />
-          );
-        })}
-        {this.props.tdSequential.sellCounts.map(({ obj, count }, index) => {
-          return (
-            <CountArrow direction='down' object={obj} count={count} key={index} />
-          );
-        })} */}
       </div>
     );
   }
 }
 
-export default TDSequential;
+export default SwingPoints;

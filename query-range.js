@@ -36,6 +36,7 @@ class QueryRange {
     this.intervalMs = parseDuration(interval);
     this.fetchHandler = fetchHandler;
     this.data = []; /** @TODO convert to RangeMap format */
+    this.lastTimestamp = null;
   }
 
   add(newData) {
@@ -43,22 +44,13 @@ class QueryRange {
   }
 
   query(startTime, endTime, latest=false) {
-    console.log('[' + this.interval + '] query', { startTime, endTime, latest })
     startTime = Math.floor(Number(startTime) / this.intervalMs) * this.intervalMs;
     endTime = Math.floor(Number(endTime) / this.intervalMs) * this.intervalMs;//(Math.floor(Number(endTime + ((latest && endTime + this.intervalMs >= Date.now()) ? this.intervalMs : 0)) / this.intervalMs) * this.intervalMs) //+ this.intervalMs;
+
     if (latest) {
       endTime += this.intervalMs;
+      this.data.pop();
     }
-
-    // if (latest) {
-    //   //endTime += this.intervalMs;
-
-    //   if (this.data.length != 0) {
-    //     if (endTime >= Date.now()) {
-    //       this.data.pop();
-    //     }
-    //   }
-    // }
 
     // let spliceIndex = -1;
     // for (let i = this.data.length - 1; i >= 0; i--) {
@@ -73,7 +65,7 @@ class QueryRange {
     //   this.data.splice(spliceIndex);
     // }
 
-    let sections = this._filterSubsections(this._populateSections(startTime, endTime), startTime, endTime);
+    let sections = this._filterSubsections(this._populateSections(startTime, endTime, latest), startTime, endTime);
     let toProcess = sections.map(({ found, values }, index) => {
       if (found) {
         return null;
@@ -85,10 +77,7 @@ class QueryRange {
     return this._processData(sections, toProcess).then(() => {
       let newData = this.data.slice();
 
-      if (latest) {
-        newData.pop();
-      }
-
+      
       sections.forEach(({ found, values }, index) => {
         if (found || values.length == 0) return;
 
@@ -98,7 +87,7 @@ class QueryRange {
           let foundIndex = findTimestampIndex(newData, value.timestamp);
 
           if (foundIndex !== -1) {
-            //console.log(`Value ${value.timestamp} should not yet be in main array but was found at index ${foundIndex} (${newData.length - foundIndex})   (duration: ${this.interval})`);
+            //console.log(`Value ${value.timestamp} should not yet be in main array but was found at index ${foundIndex} (${newData.length - foundIndex - 1})   (duration: ${this.interval})`);
             newData[foundIndex] = value;
           }
         });
@@ -129,7 +118,20 @@ class QueryRange {
         sections[index].found = true;
       });
 
+      // if (latest && sections.length > 0) {
+      //   let lastSection = sections[sections.length - 1].values;
+
+      //   if (lastSection.length > 0) {
+      //     let latestCandle = lastSection[lastSection.length - 1];
+      //     newData[newData.length - 1] = latestCandle;
+      //   }
+      // }
+
+
       this.data = newData;
+
+      let ts = this.data[this.data.length - 1].timestamp;
+      this.lastTimestamp = this.lastTimestamp == null ? ts : Math.max(this.lastTimestamp, ts);
     }).then(() => {
       // compact the array
       return sections.reduce((accum, el) => accum.concat(el.values), []);
@@ -142,6 +144,7 @@ class QueryRange {
     }
 
     return serial(toProcess.map((queryRequest) => {
+      // duplicate checker
       let duplicates = [];
       for (let i = queryRequest.startTime; i <= queryRequest.endTime; i+=this.intervalMs) {
         let index = this.data.findIndex(x => x.timestamp == i);
@@ -205,15 +208,13 @@ class QueryRange {
     return newSections;
   }
 
-  _populateSections(startTime, endTime) {
-    console.log('[' + this.interval + '] _populateSections', { startTime, endTime })
+  _populateSections(startTime, endTime, latest=false) {
+   // console.log('[' + this.interval + '] _populateSections', { startTime, endTime })
     let sections = [];
-    let dataCopy = this.data.slice();
 
     for (let i = startTime; i <= endTime; i += this.intervalMs) {
-      //let index = this.data.findIndex(i); // @TODO: use binary search. the data will be sorted.
-      let index = findTimestampIndex(dataCopy, i);
-      let prevIndex = findTimestampIndex(dataCopy, i - this.intervalMs);
+      let index = findTimestampIndex(this.data, i);
+      let prevIndex = findTimestampIndex(this.data, i - this.intervalMs);
 
       if (i == startTime || sections[sections.length - 1].values.length >= MAX_LEN || Math.sign(index + 1) != Math.sign(prevIndex + 1)) {
         sections.push({
@@ -223,10 +224,10 @@ class QueryRange {
       }
 
       if (index != -1) {
-        console.assert(dataCopy[index] != null, 'null check failed');
+        console.assert(this.data[index] != null, 'null check failed');
       }
 
-      sections[sections.length - 1].values.push(index != -1 ? dataCopy[index] : i);
+      sections[sections.length - 1].values.push(index != -1 ? this.data[index] : i);
     }
 
     sections.forEach((section, index) => {

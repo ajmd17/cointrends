@@ -2,6 +2,12 @@ const _ = require('lodash');
 
 const Step = require('./step');
 
+/** @TODO
+ * 
+ * have the pipeline store data on a filter-by-filter basis, and allow filters to specify the amount of lookback data they need.
+ * This way the entire filter does not have to be recomputed.
+ */
+
 class Pipeline {
   constructor(steps=[]) {
     this.steps = [];
@@ -47,34 +53,26 @@ class Pipeline {
     // 1d will be in chunks of 1wk
     data['_filters'] = data['_filters'] || {};
 
-    let isOpen = data.values.length == 0 || data.values[data.values.length - 1].timestamp != this.lastTimestamp;
-
-    if (isOpen) {
-      console.log('OPEN', data.values.length != 0 ? data.values[data.values.length - 1].timestamp : null, this.lastTimestamp);
-    }
-
     for (let i = 0; i < this.steps.length; i++) {
       let key = this.steps[i].key;
       let step = this.steps[i].step;
 
       console.log(' - Run filter ' + key);
       try {
-        if (step.isRealtime || isOpen) {
-          /* filter the current data using the pipe */
-          let filterResult = step.filter(data.values, data._filters);
+        /* filter the current data using the pipe */
+        let filterResult = step.filter(data.values, data._filters);
 
-          /* get new data to be stored for the pipe */
-          let pipeData = step.execute(data.values, data._filters);
+        /* get new data to be stored for the pipe */
+        let pipeData = step.execute(data.values, data._filters);
 
 
-          if (filterResult) {
-            data.values = filterResult;
-          }
+        if (filterResult) {
+          data.values = filterResult;
+        }
 
-          if (pipeData) {
-            data['_filters'][key] = pipeData;
-            this.dataStore[key] = pipeData;
-          }
+        if (pipeData) {
+          data['_filters'][key] = pipeData;
+          this.dataStore[key] = pipeData;
         }
       } catch (err) {
         console.error('Step ' + key + ' failed: ', err.stack);

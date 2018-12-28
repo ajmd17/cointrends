@@ -14,7 +14,8 @@ const defaultContentPanel = {
   dateRange: [Date.now() - (60000 * 60 * 24 * 7 * 4) /* 4 weeks */, null],
   showingAdvancedOptions: false,
   showingMovingAverages: false,
-  showingChart: true
+  openedAccordions: { chart: true, indicators: true },
+  enabledFilters: { 'support_resistance': true, 'swing_points': true }
 };
 
 class MainContent extends React.Component {
@@ -34,10 +35,6 @@ class MainContent extends React.Component {
       ...defaultContentPanel,
       selectedExchange: 'binance',
       selectedSymbol: 'BTCUSDT'
-    }, {
-      ...defaultContentPanel,
-      selectedExchange: 'binance',
-      selectedSymbol: 'ETHUSDT'
     }];
 
     if (window.location.hash != null && window.location.hash != '') {
