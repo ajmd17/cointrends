@@ -8,6 +8,7 @@ import {
 } from "react-stockcharts/lib/series";
 
 import Chart from './Chart';
+import ConfigPanel from './ConfigPanel';
 import Accordion from './Accordion';
 import AlertOptions from './AlertOptions';
 import LoadingMessage from './LoadingMessage';
@@ -72,6 +73,10 @@ class ContentPanel extends React.Component {
     onPriceChange: React.PropTypes.func.isRequired,
     onDelete: React.PropTypes.func.isRequired,
     onAlert: React.PropTypes.func.isRequired
+  };
+
+  static defaultProps = {
+    indicatorConfiguration: {}
   };
 
   constructor(props) {
@@ -493,16 +498,25 @@ class ContentPanel extends React.Component {
                 let ind = this.state.indicators[fKey];
 
                 return (
-                  <div key={fKey}>
-                    <input type='checkbox' disabled={!!filters[fKey].disabled} checked={this._filterEnabled(fKey)} onChange={(event) => { this.props.onUpdate({ enabledFilters: { ...this.props.enabledFilters, [fKey]: event.target.checked } }); }} />
-                    <span>{ind.name}</span>
+                  <div className='card-container' key={fKey}>
+                    <div className='card-body'>
+                      <input type='checkbox' disabled={!!filters[fKey].disabled} checked={this._filterEnabled(fKey)} onChange={(event) => { this.props.onUpdate({ enabledFilters: { ...this.props.enabledFilters, [fKey]: event.target.checked } }); }} />
+                      <span>{ind.name}</span>
 
-                    {ind.configuration && Object.keys(ind.configuration).length != 0
-                      ? <span>&nbsp;&nbsp;<a href='#'><i className='fa fa-cog'></i></a></span>
-                      : null}
-                    {ind.alerts && Object.keys(ind.alerts).length != 0
-                      ? <span>&nbsp;&nbsp;<a href='#'><i className='fa fa-bell'></i></a></span>
-                      : null}
+                      {ind.configuration && Object.keys(ind.configuration).length != 0
+                        ? <div className='configuration-options'>
+                            <hr/>
+                            {Object.keys(ind.configuration).map((key, index) => {
+                              return (
+                                <ConfigPanel ind={ind} values={this.props.indicatorConfiguration[fKey]} />
+                              );
+                            })}
+                          </div>
+                        : null}
+                      {ind.alerts && Object.keys(ind.alerts).length != 0
+                        ? <span>&nbsp;&nbsp;<a href='#'><i className='fa fa-bell'></i></a></span>
+                        : null}
+                    </div>
                   </div>
                 );
               })

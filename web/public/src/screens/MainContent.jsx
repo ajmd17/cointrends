@@ -15,7 +15,8 @@ const defaultContentPanel = {
   showingAdvancedOptions: false,
   showingMovingAverages: false,
   openedAccordions: { chart: true, indicators: true },
-  enabledFilters: { 'support_resistance': true, 'swing_points': true }
+  enabledFilters: { 'support_resistance': true, 'swing_points': true },
+  indicatorConfiguration: {}
 };
 
 class MainContent extends React.Component {
