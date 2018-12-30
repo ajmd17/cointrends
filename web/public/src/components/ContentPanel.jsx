@@ -18,6 +18,7 @@ import Trendlines from './filters/Trendlines';
 import TDSequential from './filters/TDSequential';
 import RSI from './filters/RSI';
 import SwingPoints from './filters/SwingPoints';
+import Triangles from './filters/Triangles';
 import DivergenceDetection from './filters/DivergenceDetection';
 
 const filters = {
@@ -38,6 +39,10 @@ const filters = {
   'swing_points': {
     type: 'overlay',
     render: (swingPoints, data) => <SwingPoints swingPoints={swingPoints.map((obj) => ({ swingClass: obj.class, obj1: data.find(x => x.timestamp == obj.t1), obj2: data.find(x => x.timestamp == obj.t2) }))} />
+  },
+  'swing_trends': {
+    type: 'overlay',
+    render: ({ trendlines, patterns }, data, moreProps) => <Triangles triangles={patterns} swingTrends={trendlines.map((obj, index) => ({ ...obj, patterns: patterns.filter(p => p.point1 == index), obj1: data.find(x => x.timestamp == obj.point1.t1), obj2: data.find(x => x.timestamp == obj.point2.t1) }))} data={data} {...moreProps} />
   },
   'divergence_detection': {
     type: 'overlay',

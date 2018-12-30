@@ -19,7 +19,7 @@ class RSI extends React.Component {
   render() {
     return (<div></div>);
 		var rsiCalculator = rsi()
-      .windowSize(14)
+      .options(14)
       .merge((d, c) => {d.rsi = c})
       .accessor(d => d.rsi);
 

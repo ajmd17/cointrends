@@ -1,5 +1,23 @@
 import React from 'react';
 
+import StraightLine from 'react-stockcharts/lib/interactive/components/StraightLine';
+
+function hashCode(str) { // java String#hashCode
+  var hash = 0;
+  for (var i = 0; i < str.length; i++) {
+     hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return hash;
+} 
+
+function intToRGB(i){
+  var c = (i & 0x00FFFFFF)
+      .toString(16)
+      .toUpperCase();
+
+  return "00000".substring(0, 6 - c.length) + c;
+}
+
 import { nest } from 'd3-collection';
 import GenericChartComponent from 'react-stockcharts/lib/GenericChartComponent';
 import { getAxisCanvas } from "react-stockcharts/lib/GenericComponent";
@@ -7,10 +25,10 @@ import {
 	hexToRGBA, isDefined, functor, plotDataLengthBarWidth, head, last
 } from "react-stockcharts/lib/utils";
 
-class SwingPoint extends React.Component {
+class TrendlineText extends React.Component {
   static propTypes = {
     direction: React.PropTypes.oneOf(['up', 'down']),
-    swingClass: React.PropTypes.string.isRequired
+    text: React.PropTypes.string.isRequired
   };
 
   drawOnCanvas(ctx, moreProps) {
@@ -30,32 +48,25 @@ class SwingPoint extends React.Component {
         values.forEach(d => {
           const x = xScale(xAccessor(d));
           const y = this.props.direction == 'down'
-            ? yScale(d.high)
+            ? yScale(d.high) - 5
             : yScale(d.low) + 5;
 
           ctx.font = '12px Arial';
-          const text = this.props.swingClass.toString();
+
+          const text = this.props.text;
 
           const width = 10;
           const height = 5;
           ctx.beginPath();
 
-          let color = '#AAAAAA';
-
-          if (this.props.swingClass.startsWith('H')) {
-            color = '#00B250';
-          } else if (this.props.swingClass.startsWith('L')) {
-            color = '#FF494A';
-          }
-
           if (this.props.direction == 'down') {
-            ctx.fillStyle = color;
+            ctx.fillStyle = '#00B250';
             ctx.moveTo(x - (width / 2), y - height);
             ctx.lineTo(x + (width / 2), y - height);
             ctx.lineTo(x, y);
             ctx.fillText(text, x - (ctx.measureText(text).width / 2), y - height - 15);
           } else if (this.props.direction == 'up') {
-            ctx.fillStyle = color;
+            ctx.fillStyle = '#FF494A';
             ctx.moveTo(x - (width / 2), y + height);
             ctx.lineTo(x + (width / 2), y + height);
             ctx.lineTo(x, y);
@@ -89,22 +100,55 @@ class SwingPoint extends React.Component {
   }
 }
 
-class SwingPoints extends React.Component {
+class Triangles extends React.Component {
   static propTypes = {
-    swingPoints: React.PropTypes.arrayOf(React.PropTypes.shape({
-      swingClass: React.PropTypes.string.isRequired,
-      obj1: React.PropTypes.object.isRequired,
-      obj2: React.PropTypes.object.isRequired
-    })).isRequired
+    swingTrends: React.PropTypes.arrayOf(React.PropTypes.object).isRequired
   };
 
   render() {
+    /* @TODO */
+    const { xAccessor, xScale } = this.props;
+
+    const getData = (timestamp) => {
+      return this.props.data.find(x => x.timestamp == timestamp);
+    };
+
     return (
       <div>
-        {this.props.swingPoints.map(({ swingClass, obj1, obj2 }, index) => {
+        {this.props.swingTrends.map((line, i) => {
+          const { point1, point2, patterns, angle, obj1, obj2, meanScore } = line;
+
+          if (obj1 == null || obj2 == null) {
+            return null;
+          }
+
+          // temp
+          if (patterns.length == 0) {
+            return null;
+          }
+
+          let timestamps = obj1.timestamp + '_' + obj2.timestamp;
+          let color = `#${intToRGB(hashCode(timestamps))}`;
+
+          let patternText = String(patterns.map((pattern) => pattern.class).join(', '));
+          patternText += '     ' + angle;
+
           return (
-            <div key={obj1.timestamp}>
-              <SwingPoint swingClass={swingClass} direction={swingClass[1] == 'H' ? 'down' : 'up'} object={obj1} />
+            <div data-meanScore={meanScore} key={i}>
+              {patternText.length != 0
+                ? <TrendlineText object={obj2} text={patternText} direction='down' />
+                : null}
+              {/* <TrendlineText object={obj2} text={String(angle2)} direction='down' /> */}
+              <StraightLine stroke={color}
+                type={'LINE'}
+                x1Value={xScale(xAccessor(getData(obj1.timestamp)))}
+                x2Value={xScale(xAccessor(getData(obj2.timestamp)))}
+                y1Value={point1.class.endsWith('H') ? obj1.high : obj1.low}
+                y2Value={point2.class.endsWith('H') ? obj2.high : obj2.low}
+                strokeWidth={1}
+                strokeOpacity={1}
+              />
+              
             </div>
           );
         })}
@@ -113,4 +157,4 @@ class SwingPoints extends React.Component {
   }
 }
 
-export default SwingPoints;
+export default Triangles;
