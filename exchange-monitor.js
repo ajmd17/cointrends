@@ -8,6 +8,7 @@ const Pipeline = require('./pipeline');
 const steps = require('./steps');
 
 const exchanges = require('./exchanges');
+const durations = require('./durations');
 
 const { CustomPipeline } = require('./models/custom-pipeline');
 
@@ -68,8 +69,8 @@ class ExchangeMonitor extends Monitor {
           });
         });
       },
-      onCandleOpen: () => {
-        if (exchanges[this.exchange].dirpath) {
+      onCandleOpen: (timeframe) => {
+        if (timeframe == durations[0] && exchanges[this.exchange].dirpath != null) {
           const filepath = path.join(exchanges[this.exchange].dirpath, `${this.symbol}.json`);
 
           let data = {};
@@ -85,11 +86,11 @@ class ExchangeMonitor extends Monitor {
           if (str) {
             console.log('Writing to datastore ' + filepath);
 
-            fs.writeFile(filepath, str, (err) => {
-              if (err) {
-                console.error(`Failed to write file ${filepath}`, err);
-              }
-            });
+            // fs.writeFile(filepath, str, (err) => {
+            //   if (err) {
+            //     console.error(`Failed to write file ${filepath}`, err);
+            //   }
+            // });
           }
         }
       },

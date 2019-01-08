@@ -147,7 +147,7 @@ class Monitor {
 
 
             if (candleOpen && typeof this.callbacks.onCandleOpen === 'function') {
-              this.callbacks.onCandleOpen();
+              this.callbacks.onCandleOpen(key);
             }
           }
 

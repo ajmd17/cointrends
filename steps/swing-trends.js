@@ -229,7 +229,7 @@ class SwingTrends extends Step {
     //   return pt.meanScore <= (meanMeanScore * (requiredAccuracy));
     // });
 
-    trendlines = this._pruneTrendlines(trendlines, data);
+    //trendlines = this._pruneTrendlines(trendlines, data);
     let patterns = this._detectPatterns(trendlines, data);
 
     return {
