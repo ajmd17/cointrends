@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const httpStatus = require('http-status-codes');
 
 const { User } = require('../models/user');
-const config = require('../config.json');
+const config = require('../config');
 
 function getToken(req) {
   return req.body.accessToken ||

@@ -2,14 +2,14 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const startDate = new Date();
-startDate.setDate(1);
-
 const exchanges = require('./exchanges');
 const durations = require('./durations');
 const ExchangeMonitor = require('./exchange-monitor');
 
 const dataStorePath = path.join(__dirname, 'datastore');
+const config = require('./config');
+
+const startDate = new Date(Date.now() - config.DEFAULT_DATA_FETCH_RANGE);
 
 if (!fs.existsSync(dataStorePath)) {
   fs.mkdirSync(dataStorePath);
@@ -59,7 +59,9 @@ Api.startServer().then(() => {
           exchange.dirpath = keyPath;
         };
         
-        preloadData();
+        if (config.DATA_STORE_ENABLED) {
+          preloadData();
+        }
         exchange.monitors[symbol].start().then(() => {
           
         });

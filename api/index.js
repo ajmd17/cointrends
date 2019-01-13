@@ -8,7 +8,7 @@ mongoose.Promise = global.Promise;
 const router = require('./router');
 
 const Api = {
-  PORT: require('../config.json')['API_PORT'],
+  PORT: require('../config')['API_PORT'],
 
   _server: null,
 

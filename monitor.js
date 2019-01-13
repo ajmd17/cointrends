@@ -119,7 +119,7 @@ class Monitor {
 
             let candleOpen = this._lastTimestamps[key] != lastTimestamp;
             if (candleOpen && this._lastTimestamps[key] != undefined) {
-              console.log('[' + key + '] CANDLE OPEN (' + this._lastTimestamps[key] + ' != ' + lastTimestamp + ')');
+              //console.log('[' + key + '] CANDLE OPEN (' + this._lastTimestamps[key] + ' != ' + lastTimestamp + ')');
             }
 
             this._lastTimestamps[key] = lastTimestamp;
