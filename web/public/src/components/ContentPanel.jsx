@@ -26,10 +26,10 @@ const filters = {
     type: 'overlay',
     render: (levels, data) => <SupportResistance levels={levels} />
   },
-  // 'support_resistance_2': {
-  //   type: 'overlay',
-  //   render: (levels, data, moreProps) => <SR2 levels={levels} data={data} {...moreProps} />
-  // },
+  'support_resistance_2': {
+    type: 'overlay',
+    render: (levels, data, moreProps) => <SR2 levels={levels} data={data} {...moreProps} />
+  },
   'fractals': {
     type: 'overlay',
     render: (fractals, data) => <WilliamsFractals fractals={{ up: fractals.up.map(({ timestamp }) => data.find(x => x.timestamp == timestamp)), down: fractals.down.map(({ timestamp }) => data.find(x => x.timestamp == timestamp)) }} />

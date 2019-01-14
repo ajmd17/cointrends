@@ -87,7 +87,6 @@ class SR2 extends React.Component {
 
           return (
             <div key={i}>
-              {/* <Rectangle x={first.data.timestamp} y={meanValue} w={last.data.timestamp - first.data.timestamp} h={50/*todo*/} objects={level.map((level) => level.data)} /> */}
               <StraightLine stroke={'#000000'}
                 type={'LINE'}
                 x1Value={xScale(xAccessor(getData(first.data.timestamp)))}
