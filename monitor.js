@@ -3,8 +3,7 @@ const Pipeline = require('./pipeline');
 const { serial } = require('./util');
 
 const durations = require('./durations');
-
-const RUN_PIPELINE_ON_CLOSE = true;
+const config = require('./config');
 
 class Monitor {
   constructor(startDate, callbacks, pipelineSteps=[], interval=10000) {
@@ -126,7 +125,7 @@ class Monitor {
 
             let values = data;
 
-            if (RUN_PIPELINE_ON_CLOSE) {
+            if (config.RUN_PIPELINE_ON_CLOSE_ONLY) {
               if (candleOpen) {
                 // console.log('Run pipeline on timeframe ' + key + ' (' + data.length + ')');
                 values = data.slice(0, data.length - 1);
