@@ -11,16 +11,14 @@ function percentDiff(a, b) {
 }
 
 class SupportResistance extends Step {
-  constructor(threshold=0.01, detail=10) {
-    super({
-      requires: ['fractals']
-    });
+  constructor(threshold=0.01, detail=20) {
+    super();
 
     this.threshold = threshold;
     this.detail = detail;
   }
 
-  execute(data, { fractals }) {
+  execute(data, { fractals, atr }) {
     let clusters = [];
 
     Object.keys(fractals).forEach((key) => {
@@ -39,7 +37,7 @@ class SupportResistance extends Step {
               continue;
             }
   
-            if (percentDiff(pt, pt2) <= this.threshold) {
+            if (Math.abs(pt - pt2) <= (atr[fractal.timestamp] + atr[fractal2.timestamp]) / 2) {
               inRange.push([fractal2.timestamp, pt2]);
             }
           }
@@ -64,7 +62,7 @@ class SupportResistance extends Step {
 }
 
 SupportResistance.options = {
-  requires: ['fractals'],
+  requires: ['fractals', 'atr'],
   configuration: {
     threshold: {
       default: 0.01,
