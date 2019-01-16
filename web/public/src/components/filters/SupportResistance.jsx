@@ -16,8 +16,15 @@ class SupportResistance extends React.Component {
 
           return (
             <div key={index}>
-              <StraightLine stroke={color} yValue={value} strokeWidth={1}/>
-
+              <StraightLine stroke={color} yValue={value} strokeWidth={2}/>
+              {index != this.props.levels.length - 1
+                ? <div>
+                    {/* <StraightLine stroke='#888888' strokeDasharray='Dash' yValue={(((value + this.props.levels[index + 1]) / 2) + this.props.levels[index + 1]) / 2}/> */}
+                    <StraightLine stroke='#333333' strokeWidth={1} strokeDasharray='Dash' yValue={(value + this.props.levels[index + 1]) / 2}/>
+                    {/* <StraightLine stroke='#888888' strokeDasharray='Dash' yValue={(((value + this.props.levels[index + 1]) / 2) + value) / 2}/> */}
+                    
+                  </div>
+                : null}
               <EdgeIndicator itemType="last" orient="left"
                 yAccessor={d => value} fill={d => color}
               />
