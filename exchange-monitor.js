@@ -6,6 +6,7 @@ const _ = require('lodash');
 const Monitor = require('./monitor');
 const Pipeline = require('./pipeline');
 const steps = require('./steps');
+const config = require('./config');
 
 const exchanges = require('./exchanges');
 const durations = require('./durations');
@@ -25,7 +26,7 @@ class ExchangeMonitor extends Monitor {
         let urlString = url({ symbol: this.symbol, interval, start, end });
 
         let duration = ((new Date(end).valueOf() - new Date(start).valueOf()) / 60000).toFixed(2);
-        console.log('Fetch remote (' + this.exchange + '/' + this.symbol + '/' + interval + ') - ' + duration + 'm range');
+        //console.log('Fetch remote (' + this.exchange + '/' + this.symbol + '/' + interval + ') - ' + duration + 'm range');
     
         return new Promise((resolve, reject) => {
           request.get(urlString, (err, resp) => {
@@ -70,7 +71,7 @@ class ExchangeMonitor extends Monitor {
         });
       },
       onCandleOpen: (timeframe) => {
-        if (timeframe == durations[0] && exchanges[this.exchange].dirpath != null) {
+        if (config['DATA_STORE_ENABLED'] && timeframe == durations[0] && exchanges[this.exchange].dirpath != null) {
           const filepath = path.join(exchanges[this.exchange].dirpath, `${this.symbol}.json`);
 
           let data = {};

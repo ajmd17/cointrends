@@ -13,7 +13,7 @@ const server = http.createServer(app);
 const assetsFolder = './assets/';
 const publicFolder = './dist';
 
-const config = require('../config.json');
+const config = require('../config');
 
 global['DEPLOY_VERSION'] = Date.now();
 
@@ -59,4 +59,4 @@ app.use('/api', (req, res) => {
 (function (port) {
   server.listen(port);
   console.log('Listening on port ' + port + '...');
-})(require('../config.json')['WEB_PORT']);
+})(require('../config')['WEB_PORT']);

@@ -14,9 +14,9 @@ import AlertOptions from './AlertOptions';
 import LoadingMessage from './LoadingMessage';
 import WilliamsFractals from './filters/WilliamsFractals';
 import SupportResistance from './filters/SupportResistance';
+import SR2 from './filters/SR2';
 import Trendlines from './filters/Trendlines';
 import TDSequential from './filters/TDSequential';
-import RSI from './filters/RSI';
 import SwingPoints from './filters/SwingPoints';
 import Triangles from './filters/Triangles';
 import DivergenceDetection from './filters/DivergenceDetection';
@@ -25,6 +25,10 @@ const filters = {
   'support_resistance': {
     type: 'overlay',
     render: (levels, data) => <SupportResistance levels={levels} />
+  },
+  'support_resistance_2': {
+    type: 'overlay',
+    render: (levels, data, moreProps) => <SR2 levels={levels} data={data} {...moreProps} />
   },
   'fractals': {
     type: 'overlay',
@@ -53,6 +57,17 @@ const filters = {
     get: (rsi, data) => {
       let accessor = d => rsi[d.timestamp] || null;
 
+      return {
+        accessor,
+        render: () => <LineSeries yAccessor={accessor} stroke='#8E1599' />
+      };
+    }
+  },
+  'atr': {
+    type: 'panel',
+    get: (atr, data) => {
+      let accessor = d => atr[d.timestamp] || null;
+      
       return {
         accessor,
         render: () => <LineSeries yAccessor={accessor} stroke='#8E1599' />
@@ -464,6 +479,7 @@ class ContentPanel extends React.Component {
 
   renderFilters(type, data, moreProps) {
     let filters = this._getFilters(type);
+    console.log('filters = ', filters);
 
     return (
       <div>
