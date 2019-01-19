@@ -2,7 +2,7 @@ const request = require('request');
 
 const exchanges = {
   'binance': {
-    symbols: ['BTCUSDT', 'ETHUSDT', 'XRPUSDT', 'BCHABCUSDT', 'BCHSVUSDT', 'EOSUSDT', 'NEOUSDT', 'TRXUSDT', 'ETCUSDT', 'BNBUSDT', 'ADAUSDT', 'LTCUSDT', 'XLMUSDT'], /* @TODO: a way to load symbols programmatically */
+    symbols: ['BTCUSDT', 'ETHUSDT', 'ETHBTC', 'XRPUSDT', 'XRPBTC','EOSUSDT', 'EOSBTC', 'NEOUSDT', 'NEOBTC', 'TRXUSDT', 'TRXBTC', 'ETCUSDT', 'ETCBTC', 'BNBUSDT', 'BNBBTC', 'ADAUSDT', 'ADABTC', 'LTCUSDT', 'LTCBTC', 'XLMUSDT', 'XLMBTC'], /* @TODO: a way to load symbols programmatically */
     monitors: {},
     url: ({ symbol, interval, start, end }) => `https://api.binance.com/api/v1/klines?symbol=${symbol}&interval=${interval}&startTime=${start}&endTime=${end}`,
     transform(obj) {
