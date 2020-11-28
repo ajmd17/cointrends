@@ -9,5 +9,7 @@ module.exports = {
   SupportResistance: require('./support-resistance'),
   SupportResistance2: require('./sr2'),
   Volume: require('./volume'),
+  VolumeSMA: require('./volume-sma'),
+  VolumeNodes: require('./volume-nodes'),
   DivergenceDetection: require('./divergence-detection')
 };

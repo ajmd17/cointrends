@@ -85,13 +85,13 @@ class ExchangeMonitor extends Monitor {
           let str = JSON.stringify(data, null, '\t');
 
           if (str) {
-            console.log('Writing to datastore ' + filepath);
+            console.log(`${Date.now()}: Writing to datastore ${filepath}...`);
 
-            // fs.writeFile(filepath, str, (err) => {
-            //   if (err) {
-            //     console.error(`Failed to write file ${filepath}`, err);
-            //   }
-            // });
+            fs.writeFile(filepath, str, (err) => {
+              if (err) {
+                console.error(`Failed to write file ${filepath}`, err);
+              }
+            });
           }
         }
       },

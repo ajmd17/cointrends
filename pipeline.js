@@ -59,7 +59,7 @@ class Pipeline {
   }
 
   run(data) {
-    console.log('Run pipeline');
+    console.log(`${Date.now()}: run pipeline`);
     // @TODO analyze in chunks of whatever the next step up is for the timeframe
     // e.g 5m will be ran in chunks of 1d
     // 1d will be in chunks of 1wk
@@ -70,6 +70,8 @@ class Pipeline {
       let step = this.steps[i].step;
 
       try {
+        console.log(`${Date.now()}: run step ${key}`);
+
         /* filter the current data using the pipe */
         let filterResult = step.filter(data.values, data._filters);
 

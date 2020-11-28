@@ -9,7 +9,7 @@ function percentDiff(a, b) {
   }
 }
 
-const magic = 1000000000;
+const magic = 1000000;
 
 class SwingTrends extends Step {
   constructor() {

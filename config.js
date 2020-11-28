@@ -7,7 +7,7 @@ module.exports = {
 
   "JWT_TOKEN_SECRET": "enter secret phrase here",
 
-  "DATA_STORE_ENABLED": false,
+  "DATA_STORE_ENABLED": true,
   "DEFAULT_DATA_FETCH_RANGE": (60000 * 60 * 24 * 7 * 4), /* 4 weeks */
   "RUN_PIPELINE_ON_CLOSE_ONLY": true
 };

@@ -20,6 +20,7 @@ import TDSequential from './filters/TDSequential';
 import SwingPoints from './filters/SwingPoints';
 import Triangles from './filters/Triangles';
 import DivergenceDetection from './filters/DivergenceDetection';
+import VolumeNodes from './filters/VolumeNodes';
 
 const filters = {
   'support_resistance': {
@@ -75,7 +76,6 @@ const filters = {
     }
   },
   'volume': {
-
     type: 'panel',
     get: (volume, data) => {
       let accessor = d => volume[d.timestamp];
@@ -85,6 +85,21 @@ const filters = {
         render: () => volume == null ? null : <BarSeries yAccessor={accessor} fill={d => d.close > d.open ? "#555555" : "#000000"} />
       };
     }
+  },
+  'volume_sma': {
+    type: 'panel',
+    get: (volume_sma, data) => {
+      let accessor = d => volume_sma[d.timestamp] || null;
+
+      return {
+        accessor,
+        render: () => <LineSeries yAccessor={accessor} stroke='#000000' />
+      };
+    }
+  },
+  'volume_nodes': {
+    type: 'overlay',
+    render: (volumeNodes, data, moreProps) => <VolumeNodes volumeNodes={volumeNodes} data={data} {...moreProps} />
   },
   'td_sequential': {
     type: 'overlay',
@@ -309,6 +324,7 @@ class ContentPanel extends React.Component {
 
     return keys.map((key, index) => {
       if (this.state.filterData[key] == null) {
+        console.error(`[${key}]: no filter data returned`);
         return null;
       }
 
@@ -317,6 +333,7 @@ class ContentPanel extends React.Component {
 
         if (typeof filterObj.get === 'function') { // 'get' function, used to return a filter object for stateful data.
           if (this.state.filterData[key] == null) {
+            console.error(`[${key}]: no filter data returned`);
             return null;
           }
 
@@ -479,7 +496,6 @@ class ContentPanel extends React.Component {
 
   renderFilters(type, data, moreProps) {
     let filters = this._getFilters(type);
-    console.log('filters = ', filters);
 
     return (
       <div>
